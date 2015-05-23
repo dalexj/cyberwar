@@ -3,17 +3,27 @@ var player = {
   squares: [[2, 2]],
   head: [2, 2],
   maxLength: 3,
-  maxMoves: 8,
+  maxMoves: 4,
   movesMade: 0,
   movesRemaining: function() {
     return this.maxMoves - this.movesMade;
+  },
+  attack: {
+    range: 2,
+    damage: 2
   }
+};
+
+var attackMode = false;
+
+var enemy = {
 };
 
 var color1 = 'rgb(100,200,100)';
 var color2 = 'rgb(200,100,200)';
 var color3 = 'rgb(0,100,100)';
 var color4 = 'rgb(255,255,60)';
+var color5 = 'rgb(255,0,0)';
 
 document.addEventListener("DOMContentLoaded", function(event) {
   'use strict';
@@ -52,6 +62,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
       player.squares.unshift(clickedSquare.loc);
       player.squares = player.squares.slice(0, player.maxLength);
       player.movesMade++;
+      if(player.movesRemaining() === 0) {
+        attackMode = true;
+      }
     }
     drawOnCanvas(ctx);
     // console.log({ x: x, y: y});
@@ -63,17 +76,27 @@ function squareNextTo(a, b) {
 }
 
 function drawOnCanvas(ctx) {
+  clearCanvas(ctx);
   squaresOnBoard.forEach(function(square) {
+    var a = true;
     if(arrayEqual(player.head, square.loc)) {
       ctx.fillStyle = color3;
     } else if(isInArray(player.squares, square.loc)) {
       ctx.fillStyle = color2;
     } else if(squareDist(square.loc, player.head) <= player.movesRemaining()) {
       ctx.fillStyle = color4;
+    } else if(attackMode && squareDist(square.loc, player.head) <= player.attack.range) {
+      ctx.fillStyle = color1;
+      ctx.fillRect(square.x, square.y, square.size, square.size);
+
+      ctx.fillStyle = color5;
+      ctx.font = '' + 48 + 'px monospaced';
+      ctx.fillText('X', square.x, square.y + 48);
+      a = false;
     } else {
       ctx.fillStyle = color1;
     }
-    ctx.fillRect(square.x, square.y, square.size, square.size);
+    if(a) ctx.fillRect(square.x, square.y, square.size, square.size);
   });
 }
 
@@ -95,4 +118,8 @@ function arrayEqual(arr1, arr2) {
 
 function squareDist(a, b) {
   return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+}
+
+function clearCanvas(ctx) {
+  ctx.clearRect (0, 0, ctx.canvas.width, ctx.canvas.height);
 }
