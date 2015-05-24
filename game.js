@@ -93,7 +93,6 @@ function squareNextTo(a, b) {
 function drawOnCanvas(ctx) {
   clearCanvas(ctx);
   squaresOnBoard.forEach(function(square) {
-    var a = true;
     if(arrayEqual(player.head, square.loc)) {
       ctx.fillStyle = color3;
     } else if(isInArray(player.squares, square.loc)) {
