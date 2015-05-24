@@ -17,6 +17,18 @@ var player = {
 var attackMode = false;
 
 var enemy = {
+  squares: [[3, 4], [4, 4], [5, 4]],
+  head: [3, 4],
+  maxLength: 3,
+  maxMoves: 4,
+  movesMade: 0,
+  movesRemaining: function() {
+    return this.maxMoves - this.movesMade;
+  },
+  attack: {
+    range: 2,
+    damage: 2
+  }
 };
 
 var color1 = 'rgb(100,200,100)';
@@ -24,6 +36,7 @@ var color2 = 'rgb(200,100,200)';
 var color3 = 'rgb(0,100,100)';
 var color4 = 'rgb(255,255,60)';
 var color5 = 'rgb(255,0,0)';
+var color6 = 'rgb(255,130,0)';
 
 document.addEventListener("DOMContentLoaded", function(event) {
   'use strict';
@@ -57,7 +70,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
         break;
       }
     }
-    if(clickedSquare && player.movesRemaining() > 0 && squareNextTo(clickedSquare.loc, player.head)) {
+    if(clickedSquare && attackMode && squareDist(player.head, clickedSquare.loc) <= player.attack.range && isInArray(enemy.squares, clickedSquare.loc)) {
+      enemy.squares = enemy.squares.slice(0, -player.attack.damage);
+    } else if(clickedSquare && player.movesRemaining() > 0 && squareNextTo(clickedSquare.loc, player.head)) {
       player.head = clickedSquare.loc;
       player.squares.unshift(clickedSquare.loc);
       player.squares = player.squares.slice(0, player.maxLength);
@@ -83,20 +98,19 @@ function drawOnCanvas(ctx) {
       ctx.fillStyle = color3;
     } else if(isInArray(player.squares, square.loc)) {
       ctx.fillStyle = color2;
+    } else if(isInArray(enemy.squares, square.loc)) {
+      ctx.fillStyle = color6;
     } else if(squareDist(square.loc, player.head) <= player.movesRemaining()) {
       ctx.fillStyle = color4;
-    } else if(attackMode && squareDist(square.loc, player.head) <= player.attack.range) {
-      ctx.fillStyle = color1;
-      ctx.fillRect(square.x, square.y, square.size, square.size);
-
-      ctx.fillStyle = color5;
-      ctx.font = '' + 48 + 'px monospaced';
-      ctx.fillText('X', square.x, square.y + 48);
-      a = false;
     } else {
       ctx.fillStyle = color1;
     }
-    if(a) ctx.fillRect(square.x, square.y, square.size, square.size);
+    ctx.fillRect(square.x, square.y, square.size, square.size);
+    if(attackMode && squareDist(square.loc, player.head) <= player.attack.range && !isInArray(player.squares, square.loc)) {
+      ctx.fillStyle = color5;
+      ctx.font = '' + 48 + 'px monospaced';
+      ctx.fillText('X', square.x, square.y + 48);
+    }
   });
 }
 
