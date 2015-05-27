@@ -38,14 +38,24 @@ var color4 = 'rgb(255,255,60)';
 var color5 = 'rgb(255,0,0)';
 var color6 = 'rgb(255,130,0)';
 
+var color7 = 'rgb(200,200,200)';
+var white = 'rgb(255,255,255)';
+
+var offset = 130;
+var size = 30;
+var space = 4;
+
+var buttons = [
+  { press: function() {}, text: 'button1' },
+  { press: function() {}, text: 'button2' }
+];
 document.addEventListener("DOMContentLoaded", function(event) {
   'use strict';
   var canvas = document.getElementById('game-canvas');
+  canvas.width = '650';
+  canvas.height = '488';
   var ctx = canvas.getContext('2d');
 
-  var offset = 100;
-  var size = 48;
-  var space = 10;
   var xMany = Math.floor((canvas.width - space - offset) / (size + space));
   var yMany = Math.floor((canvas.height - space) / (size + space));
 
@@ -108,9 +118,19 @@ function drawOnCanvas(ctx) {
     ctx.fillRect(square.x, square.y, square.size, square.size);
     if(attackMode && squareDist(square.loc, player.head) <= player.attack.range && !isInArray(player.squares, square.loc)) {
       ctx.fillStyle = color5;
-      ctx.font = '' + 48 + 'px monospaced';
-      ctx.fillText('X', square.x, square.y + 48);
+      ctx.font = '' + size + 'px monospace';
+      ctx.fillText('X', square.x, square.y + size );
     }
+  });
+  ctx.fillStyle = color7;
+  ctx.fillRect(10, 5, offset - 20, ctx.canvas.height - 20);
+  buttons.forEach(function(button, index) {
+    ctx.fillStyle = color6;
+    ctx.fillRect(10, 100 + (35 * index), offset - 20, 30);
+    ctx.fillStyle = white;
+    ctx.font = '20px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(button.text, 10 + (offset / 2), 125 + (35*index));
   });
 }
 
