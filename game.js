@@ -43,9 +43,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
   var canvas = document.getElementById('game-canvas');
   var ctx = canvas.getContext('2d');
 
+  var offset = 100;
   var size = 48;
   var space = 10;
-  var xMany = Math.floor((canvas.width - space) / (size + space));
+  var xMany = Math.floor((canvas.width - space - offset) / (size + space));
   var yMany = Math.floor((canvas.height - space) / (size + space));
 
   // console.log(xMany, yMany);
@@ -54,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     for (var j = 0; j < yMany; j++) {
       var x = space + i*(size + space);
       var y = space + j*(size + space);
-      squaresOnBoard.push({ x: x, y: y, size: size, loc: [i, j] });
+      squaresOnBoard.push({ x: x + offset, y: y, size: size, loc: [i, j] });
     }
   }
   drawOnCanvas(ctx);
