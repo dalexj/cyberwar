@@ -118,8 +118,9 @@ function drawOnCanvas(ctx) {
     ctx.fillRect(square.x, square.y, square.size, square.size);
     if(attackMode && squareDist(square.loc, player.head) <= player.attack.range && !isInArray(player.squares, square.loc)) {
       ctx.fillStyle = color5;
+      ctx.textAlign = 'center';
       ctx.font = '' + size + 'px monospace';
-      ctx.fillText('X', square.x, square.y + size );
+      ctx.fillText('X', square.x + size/2, square.y + size );
     }
   });
   ctx.fillStyle = color7;
