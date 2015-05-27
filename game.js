@@ -46,8 +46,8 @@ var size = 30;
 var space = 4;
 
 var buttons = [
-  { press: function() {}, text: 'button1' },
-  { press: function() {}, text: 'button2' }
+  { press: function() { console.log(this.text + ' pressed'); }, text: 'button1' },
+  { press: function() { console.log(this.text + ' pressed'); }, text: 'button2' }
 ];
 document.addEventListener("DOMContentLoaded", function(event) {
   'use strict';
@@ -74,11 +74,19 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var y = e.pageY - this.offsetTop;
 
     var clickedSquare = null;
+    var clickedButton = null;
     for (var i = 0; i < squaresOnBoard.length; i++) {
       var square = squaresOnBoard[i];
       if(square.x < x && square.x + square.size > x && square.y < y && square.y + square.size > y) {
         clickedSquare = square;
         break;
+      }
+    }
+    if(!clickedSquare) {
+      for (var j = 0; j < buttons.length; j++) {
+        if(10 < x && offset-10 > x && 100 + (35 * j) < y && 130 + (35 * j) > y) {
+          clickedButton = buttons[j];
+        }
       }
     }
     if(clickedSquare && attackMode && squareDist(player.head, clickedSquare.loc) <= player.attack.range && isInArray(enemy.squares, clickedSquare.loc)) {
@@ -91,6 +99,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
       if(player.movesRemaining() === 0) {
         attackMode = true;
       }
+    } else if(clickedButton) {
+      clickedButton.press();
     }
     drawOnCanvas(ctx);
     // console.log({ x: x, y: y});
