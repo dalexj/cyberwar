@@ -8,13 +8,26 @@ var player = {
   movesRemaining: function() {
     return this.maxMoves - this.movesMade;
   },
-  attack: {
-    range: 2,
-    damage: 2
+  attacks: [
+    { name: 'attack1', range: 2, damage: 2 },
+    { name: 'attack2', range: 1, damage: 3 }
+  ],
+  currentAttack: function() {
+    return this._currentAttack || this.attacks[0];
   }
 };
 
 var attackMode = false;
+
+var buttons = player.attacks.map(function(attack) {
+  return {
+    press: function() {
+      attackMode = true;
+      player._currentAttack = attack;
+    },
+    text: attack.name
+  };
+});
 
 var enemy = {
   squares: [[3, 4], [4, 4], [5, 4]],
@@ -45,10 +58,6 @@ var offset = 130;
 var size = 30;
 var space = 4;
 
-var buttons = [
-  { press: function() { console.log(this.text + ' pressed'); }, text: 'button1' },
-  { press: function() { console.log(this.text + ' pressed'); }, text: 'button2' }
-];
 document.addEventListener("DOMContentLoaded", function(event) {
   'use strict';
   var canvas = document.getElementById('game-canvas');
@@ -86,12 +95,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
       for (var j = 0; j < buttons.length; j++) {
         if(10 < x && offset-10 > x && 100 + (35 * j) < y && 130 + (35 * j) > y) {
           clickedButton = buttons[j];
+          break;
         }
       }
     }
-    if(clickedSquare && attackMode && squareDist(player.head, clickedSquare.loc) <= player.attack.range && isInArray(enemy.squares, clickedSquare.loc)) {
-      enemy.squares = enemy.squares.slice(0, -player.attack.damage);
-    } else if(clickedSquare && player.movesRemaining() > 0 && squareNextTo(clickedSquare.loc, player.head)) {
+    if(clickedSquare && attackMode && squareDist(player.head, clickedSquare.loc) <= player.currentAttack().range && isInArray(enemy.squares, clickedSquare.loc)) {
+      enemy.squares = enemy.squares.slice(0, -player.currentAttack().damage);
+    } else if(!attackMode && clickedSquare && player.movesRemaining() > 0 && squareNextTo(clickedSquare.loc, player.head)) {
       player.head = clickedSquare.loc;
       player.squares.unshift(clickedSquare.loc);
       player.squares = player.squares.slice(0, player.maxLength);
@@ -120,13 +130,13 @@ function drawOnCanvas(ctx) {
       ctx.fillStyle = color2;
     } else if(isInArray(enemy.squares, square.loc)) {
       ctx.fillStyle = color6;
-    } else if(squareDist(square.loc, player.head) <= player.movesRemaining()) {
+    } else if(!attackMode && squareDist(square.loc, player.head) <= player.movesRemaining()) {
       ctx.fillStyle = color4;
     } else {
       ctx.fillStyle = color1;
     }
     ctx.fillRect(square.x, square.y, square.size, square.size);
-    if(attackMode && squareDist(square.loc, player.head) <= player.attack.range && !isInArray(player.squares, square.loc)) {
+    if(attackMode && squareDist(square.loc, player.head) <= player.currentAttack().range && !isInArray(player.squares, square.loc)) {
       ctx.fillStyle = color5;
       ctx.textAlign = 'center';
       ctx.font = '' + size + 'px monospace';
