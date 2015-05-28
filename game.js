@@ -1,11 +1,10 @@
-var board = { squares: [] };
 
 function Unit(options, loc) {
   this.maxMoves = options.maxMoves;
   this.maxLength = options.maxLength;
   this.movesMade = 0;
   this.head = loc;
-  this.squares = [loc];
+  this.squares = options.squares || [loc];
   this.attackMode = false;
   this.attacks = options.attacks;
   this.moveOver = false;
@@ -48,7 +47,6 @@ Unit.prototype.makeButtonsForAttacks = function() {
   });
 };
 
-
 var player = new Unit({
   maxLength: 3,
   maxMoves: 4,
@@ -58,24 +56,18 @@ var player = new Unit({
   ]
 }, [2, 2]);
 
-var attackMode = false;
-
 var buttons = player.makeButtonsForAttacks();
 
-var enemy = {
-  squares: [[3, 4], [4, 4], [5, 4]],
-  head: [3, 4],
+var enemy = new Unit({
   maxLength: 3,
   maxMoves: 4,
-  movesMade: 0,
-  movesRemaining: function() {
-    return this.maxMoves - this.movesMade;
-  },
-  attack: {
-    range: 2,
-    damage: 2
-  }
-};
+  squares: [[3, 4], [4, 4], [5, 4]],
+  attacks: [
+    { name: 'attack', range: 2, damage: 2 }
+  ]
+}, [3, 4]);
+
+var board = { squares: [] };
 
 var color1 = 'rgb(100,200,100)';
 var color2 = 'rgb(200,100,200)';
@@ -111,6 +103,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
   }
   drawOnCanvas(ctx);
+
+
   canvas.addEventListener('click', function(e) {
     var x = e.pageX - this.offsetLeft;
     var y = e.pageY - this.offsetTop;
@@ -133,7 +127,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
       }
     }
     if(clickedSquare && player.attackMode && squareDist(player.head, clickedSquare.loc) <= player.currentAttack().range && isInArray(enemy.squares, clickedSquare.loc)) {
-      enemy.squares = enemy.squares.slice(0, -player.currentAttack().damage);
+      // enemy.squares = enemy.squares.slice(0, -player.currentAttack().damage);
+      player.attack(enemy);
     } else if(!player.attackMode && clickedSquare && player.movesRemaining() > 0 && squareNextTo(clickedSquare.loc, player.head)) {
       player.head = clickedSquare.loc;
       player.squares.unshift(clickedSquare.loc);
