@@ -32,6 +32,30 @@ Unit.prototype.restartTurn = function() {
   this.movesMade = 0;
   this.attackMode = false;
   this.moveOver = false;
+  this._currentAttack = null;
+};
+
+Unit.prototype.canHit = function(enemy, loc) {
+  return this.attackMode && squareDist(this.head, loc) <= this.currentAttack().range && enemy.isOnSquare(loc);
+};
+
+Unit.prototype.canMoveTo = function(loc) {
+  return !this.attackMode && this.movesRemaining() > 0 && squareNextTo(loc, this.head);
+};
+
+Unit.prototype.moveTo = function(loc) {
+  this.movesMade++;
+  this.head = loc;
+  if(!isInArray(this.squares, loc)) {
+    this.squares.push(loc);
+  }
+  if(playerQ.selectedUnit().movesRemaining() === 0) {
+    playerQ.selectedUnit().attackMode = true;
+  }
+};
+
+Unit.prototype.isOnSquare = function(loc) {
+  return isInArray(this.squares, loc);
 };
 
 Unit.prototype.makeButtonsForAttacks = function() {
@@ -55,6 +79,26 @@ var player = new Unit({
     { name: 'attack2', range: 1, damage: 3 }
   ]
 }, [2, 2]);
+var player2 = new Unit({
+  maxLength: 2,
+  maxMoves: 6,
+  attacks: [
+    { name: 'attack1', range: 2, damage: 2 },
+    { name: 'attack2', range: 1, damage: 3 }
+  ]
+}, [2, 8]);
+
+var playerQ = {
+  units: [player, player2],
+  nextUnit: function() {
+    for (var i = 0; i < this.units.length; i++) {
+      if(!this.units[i].moveOver) return this.units[i];
+    }
+  },
+  selectedUnit: function() {
+    return this._selectedUnit || this.nextUnit();
+  }
+};
 
 var buttons = player.makeButtonsForAttacks();
 
@@ -126,16 +170,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
       }
     }
-    if(clickedSquare && player.attackMode && squareDist(player.head, clickedSquare.loc) <= player.currentAttack().range && isInArray(enemy.squares, clickedSquare.loc)) {
-      // enemy.squares = enemy.squares.slice(0, -player.currentAttack().damage);
-      player.attack(enemy);
-    } else if(!player.attackMode && clickedSquare && player.movesRemaining() > 0 && squareNextTo(clickedSquare.loc, player.head)) {
-      player.head = clickedSquare.loc;
-      player.squares.unshift(clickedSquare.loc);
-      player.squares = player.squares.slice(0, player.maxLength);
-      player.movesMade++;
-      if(player.movesRemaining() === 0) {
-        player.attackMode = true;
+    if(clickedSquare && playerQ.selectedUnit().canHit(enemy, clickedSquare.loc)) {
+      playerQ.selectedUnit().attack(enemy);
+    } else if(clickedSquare && playerQ.canMoveTo(clickedSquare.loc)) {
+      playerQ.selectedUnit
+      playerQ.selectedUnit().head = clickedSquare.loc;
+      playerQ.selectedUnit().squares.unshift(clickedSquare.loc);
+      playerQ.selectedUnit().squares = playerQ.selectedUnit().squares.slice(0, playerQ.selectedUnit().maxLength);
+      playerQ.selectedUnit().movesMade++;
+      if(playerQ.selectedUnit().movesRemaining() === 0) {
+        playerQ.selectedUnit().attackMode = true;
       }
     } else if(clickedButton) {
       clickedButton.press();
@@ -152,19 +196,19 @@ function squareNextTo(a, b) {
 function drawOnCanvas(ctx) {
   clearCanvas(ctx);
   board.squares.forEach(function(square) {
-    if(arrayEqual(player.head, square.loc)) {
+    if(arrayEqual(playerQ.selectedUnit().head, square.loc)) {
       ctx.fillStyle = color3;
-    } else if(isInArray(player.squares, square.loc)) {
+    } else if(isInArray(playerQ.selectedUnit().squares, square.loc)) {
       ctx.fillStyle = color2;
     } else if(isInArray(enemy.squares, square.loc)) {
       ctx.fillStyle = color6;
-    } else if(!player.attackMode && squareDist(square.loc, player.head) <= player.movesRemaining()) {
+    } else if(!playerQ.selectedUnit().attackMode && squareDist(square.loc, playerQ.selectedUnit().head) <= playerQ.selectedUnit().movesRemaining()) {
       ctx.fillStyle = color4;
     } else {
       ctx.fillStyle = color1;
     }
     ctx.fillRect(square.x, square.y, square.size, square.size);
-    if(player.attackMode && squareDist(square.loc, player.head) <= player.currentAttack().range && !isInArray(player.squares, square.loc)) {
+    if(playerQ.selectedUnit().attackMode && squareDist(square.loc, playerQ.selectedUnit().head) <= playerQ.selectedUnit().currentAttack().range && !isInArray(playerQ.selectedUnit().squares, square.loc)) {
       ctx.fillStyle = color5;
       ctx.textAlign = 'center';
       ctx.font = '' + size + 'px monospace';
