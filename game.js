@@ -35,8 +35,12 @@ Unit.prototype.restartTurn = function() {
   this._currentAttack = null;
 };
 
-Unit.prototype.canHit = function(enemy, loc) {
-  return this.attackMode && squareDist(this.head, loc) <= this.currentAttack().range && enemy.isOnSquare(loc);
+Unit.prototype.canAttack = function(enemy, loc) {
+  return this.canAttackSquare(loc) && enemy.isOnSquare(loc);
+};
+
+Unit.prototype.canAttackSquare = function(loc) {
+  return this.attackMode && squareDist(this.head, loc) <= this.currentAttack().range && !this.isOnSquare(loc);
 };
 
 Unit.prototype.canMoveTo = function(loc) {
@@ -49,8 +53,8 @@ Unit.prototype.moveTo = function(loc) {
   if(!isInArray(this.squares, loc)) {
     this.squares.push(loc);
   }
-  if(playerQ.selectedUnit().movesRemaining() === 0) {
-    playerQ.selectedUnit().attackMode = true;
+  if(this.movesRemaining() <= 0) {
+    this.attackMode = true;
   }
 };
 
@@ -170,17 +174,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
       }
     }
-    if(clickedSquare && playerQ.selectedUnit().canHit(enemy, clickedSquare.loc)) {
+    if(clickedSquare && playerQ.selectedUnit().canAttack(enemy, clickedSquare.loc)) {
       playerQ.selectedUnit().attack(enemy);
-    } else if(clickedSquare && playerQ.canMoveTo(clickedSquare.loc)) {
-      playerQ.selectedUnit
-      playerQ.selectedUnit().head = clickedSquare.loc;
-      playerQ.selectedUnit().squares.unshift(clickedSquare.loc);
-      playerQ.selectedUnit().squares = playerQ.selectedUnit().squares.slice(0, playerQ.selectedUnit().maxLength);
-      playerQ.selectedUnit().movesMade++;
-      if(playerQ.selectedUnit().movesRemaining() === 0) {
-        playerQ.selectedUnit().attackMode = true;
-      }
+    } else if(clickedSquare && playerQ.selectedUnit().canMoveTo(clickedSquare.loc)) {
+      playerQ.selectedUnit().moveTo(clickedSquare.loc);
     } else if(clickedButton) {
       clickedButton.press();
     }
@@ -196,19 +193,26 @@ function squareNextTo(a, b) {
 function drawOnCanvas(ctx) {
   clearCanvas(ctx);
   board.squares.forEach(function(square) {
-    if(arrayEqual(playerQ.selectedUnit().head, square.loc)) {
-      ctx.fillStyle = color3;
-    } else if(isInArray(playerQ.selectedUnit().squares, square.loc)) {
-      ctx.fillStyle = color2;
-    } else if(isInArray(enemy.squares, square.loc)) {
-      ctx.fillStyle = color6;
-    } else if(!playerQ.selectedUnit().attackMode && squareDist(square.loc, playerQ.selectedUnit().head) <= playerQ.selectedUnit().movesRemaining()) {
+    ctx.fillStyle = color1;
+    var changed = false;
+    for (var i = 0; i < playerQ.units.length; i++) {
+      if(changed) break;
+      changed = true;
+      if(arrayEqual(playerQ.units[i].head, square.loc)) {
+        ctx.fillStyle = color3;
+      } else if(isInArray(playerQ.units[i].squares, square.loc)) {
+        ctx.fillStyle = color2;
+      } else if(isInArray(enemy.squares, square.loc)) {
+        ctx.fillStyle = color6;
+      } else {
+        changed = false;
+      }
+    }
+    if(!changed && !playerQ.selectedUnit().attackMode && squareDist(square.loc, playerQ.selectedUnit().head) <= playerQ.selectedUnit().movesRemaining()) {
       ctx.fillStyle = color4;
-    } else {
-      ctx.fillStyle = color1;
     }
     ctx.fillRect(square.x, square.y, square.size, square.size);
-    if(playerQ.selectedUnit().attackMode && squareDist(square.loc, playerQ.selectedUnit().head) <= playerQ.selectedUnit().currentAttack().range && !isInArray(playerQ.selectedUnit().squares, square.loc)) {
+    if(playerQ.selectedUnit().canAttackSquare(square.loc)) {
       ctx.fillStyle = color5;
       ctx.textAlign = 'center';
       ctx.font = '' + size + 'px monospace';
