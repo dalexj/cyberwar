@@ -35,7 +35,6 @@ QUnit.test('Unit#removeSquares', function(assert) {
   u.removeSquares(2);
   assert.equal(2, u.health());
   assert.deepEqual([[1,2], [0,2]], u.squares);
-  console.log(assert);
 });
 
 QUnit.test('Unit#restartTurn', function(assert) {
@@ -56,7 +55,19 @@ QUnit.test('Unit#canAttack', function(assert) {
 });
 
 QUnit.test('Unit#canAttackSquare', function(assert) {
-  assert.ok(true);
+  var atks = [{ name: 'test', damage: 1, range: 1}, { name: 'test2', damage: 1, range: 2}];
+  var squares = [[1,2], [2,2]];
+  var u = new Unit({ attacks: atks, squares: squares }, [2,2]);
+  u.attackMode = true;
+  assert.ok(!u.canAttackSquare([1,2])); // cant attack self
+  assert.ok(!u.canAttackSquare([4,2])); // cant attack out of range
+  assert.ok(!u.canAttackSquare([3,3])); // cant attack out of range
+  assert.ok(u.canAttackSquare([3,2])); // can attack in range
+  u._currentAttack = u.attacks[1];
+  assert.ok(!u.canAttackSquare([5,2])); // cant attack out of range
+  assert.ok(!u.canAttackSquare([4,3])); // cant attack out of range
+  assert.ok(u.canAttackSquare([4,2])); // can attack in range
+  assert.ok(u.canAttackSquare([3,3])); // can attack in range
 });
 
 QUnit.test('Unit#canMoveTo', function(assert) {
