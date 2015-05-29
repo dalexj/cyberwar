@@ -24,6 +24,10 @@ Unit.prototype.attack = function(enemy) {
   enemy.removeSquares(this.currentAttack().damage);
 };
 
+Unit.prototype.health = function() {
+  return this.squares.length;
+};
+
 Unit.prototype.removeSquares = function(amount) {
   if(amount <= 0) return;
   this.squares = this.squares.slice(0, -amount);
