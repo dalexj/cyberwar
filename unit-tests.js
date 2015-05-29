@@ -23,11 +23,32 @@ QUnit.test('Unit#attack', function(assert) {
 });
 
 QUnit.test('Unit#removeSquares', function(assert) {
-  assert.ok(true);
+  var squares = [[1,2], [0,2], [0,1], [0,0]];
+  var u = new Unit({ squares: squares }, squares[0]);
+
+  assert.equal(4, u.health());
+  u.removeSquares(0);
+  assert.equal(4, u.health());
+  u.removeSquares(-2);
+  assert.equal(4, u.health());
+
+  u.removeSquares(2);
+  assert.equal(2, u.health());
+  assert.deepEqual([[1,2], [0,2]], u.squares);
+  console.log(assert);
 });
 
 QUnit.test('Unit#restartTurn', function(assert) {
-  assert.ok(true);
+  var u = new Unit({});
+  u.moveOver = true;
+  u._currentAttack = '123';
+  u.attackMode = true;
+  u.movesMade = 9;
+  u.restartTurn();
+  assert.ok(!u.moveOver);
+  assert.ok(!u._currentAttack);
+  assert.ok(!u.attackMode);
+  assert.equal(0, u.movesMade);
 });
 
 QUnit.test('Unit#canAttack', function(assert) {
