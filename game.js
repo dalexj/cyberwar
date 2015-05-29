@@ -25,6 +25,7 @@ Unit.prototype.attack = function(enemy) {
 };
 
 Unit.prototype.removeSquares = function(amount) {
+  if(amount <= 0) return;
   this.squares = this.squares.slice(0, -amount);
 };
 
@@ -51,11 +52,12 @@ Unit.prototype.moveTo = function(loc) {
   this.movesMade++;
   this.head = loc;
   if(!isInArray(this.squares, loc)) {
-    this.squares.push(loc);
+    this.squares.unshift(loc);
   }
   if(this.movesRemaining() <= 0) {
     this.attackMode = true;
   }
+  this.removeSquares(this.squares.length - this.maxLength);
 };
 
 Unit.prototype.isOnSquare = function(loc) {
@@ -141,8 +143,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
   var xMany = Math.floor((canvas.width - space - offset) / (size + space));
   var yMany = Math.floor((canvas.height - space) / (size + space));
 
-  // console.log(xMany, yMany);
-
   for (var i = 0; i < xMany; i++) {
     for (var j = 0; j < yMany; j++) {
       var x = space + i*(size + space);
@@ -182,7 +182,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
       clickedButton.press();
     }
     drawOnCanvas(ctx);
-    // console.log({ x: x, y: y});
   }, false);
 });
 
