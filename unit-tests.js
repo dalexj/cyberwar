@@ -71,7 +71,22 @@ QUnit.test('Unit#canAttackSquare', function(assert) {
 });
 
 QUnit.test('Unit#canMoveTo', function(assert) {
-  assert.ok(true);
+  var u = new Unit({ maxMoves: 2 }, [1,1]);
+  assert.ok(u.canMoveTo([1,2]));
+  assert.ok(u.canMoveTo([2,1]));
+  assert.ok(u.canMoveTo([0,1]));
+  assert.ok(u.canMoveTo([1,0]));
+  assert.ok(!u.canMoveTo([1,1]));
+  assert.ok(!u.canMoveTo([2,2]));
+  assert.ok(!u.canMoveTo([0,0]));
+  assert.ok(!u.canMoveTo([1,3]));
+  u.movesMade = 2;
+  assert.ok(!u.canMoveTo([1,2]));
+  u.movesMade = 0;
+  u.attackMode = true;
+  assert.ok(!u.canMoveTo([1,2]));
+  u.attackMode = false;
+  assert.ok(u.canMoveTo([1,2]));
 });
 
 QUnit.test('Unit#moveTo', function(assert) {
