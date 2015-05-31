@@ -51,7 +51,14 @@ QUnit.test('Unit#restartTurn', function(assert) {
 });
 
 QUnit.test('Unit#canAttack', function(assert) {
-  assert.ok(true);
+  var atks = [{ name: 'test', damage: 1, range: 1}];
+  var squares = [[1,2], [2,2]];
+  var u = new Unit({ attacks: atks, squares: squares }, [2,2]);
+  var enemy = new Unit({squares: [[2,4], [2,3]]}, [2,3]);
+  u.attackMode = true;
+  assert.ok(u.canAttack(enemy, [2,3])); // can attack enemy in range
+  assert.ok(!u.canAttack(enemy, [3,2])); // cant attack, enemy not there
+  assert.ok(!u.canAttack(enemy, [2,4])); // cant attack, not in range
 });
 
 QUnit.test('Unit#canAttackSquare', function(assert) {
