@@ -53,11 +53,18 @@ Unit.prototype.canMoveTo = function(loc) {
 };
 
 Unit.prototype.moveTo = function(loc) {
+  if(!this.canMoveTo(loc)) return;
   this.movesMade++;
   this.head = loc;
-  if(!isInArray(this.squares, loc)) {
-    this.squares.unshift(loc);
+  // if crossing over self, replace the square that already exists
+  // so that unit squares stay in order
+  for (var i = 0; i < this.squares.length; i++) {
+    if (arrayEqual(this.squares[i], loc)) {
+      this.squares.splice(i, 1);
+      break;
+    }
   }
+  this.squares.unshift(loc);
   if(this.movesRemaining() <= 0) {
     this.attackMode = true;
   }
