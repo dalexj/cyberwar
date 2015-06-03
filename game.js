@@ -8,7 +8,7 @@ function Unit(options, loc) {
   this.head = loc;
   this.squares = options.squares || [loc];
   this.attackMode = false;
-  this.attacks = options.attacks;
+  this.attacks = options.attacks || [];
   this.moveOver = false;
 }
 
@@ -87,14 +87,22 @@ Unit.prototype.makeButtonsForAttacks = function() {
       },
       text: attack.name
     };
-  });
+  }).concat(this.noAttackButton());
+};
+
+Unit.prototype.noAttackButton = function() {
+  return {
+    press: function() { unit.moveOver = true; },
+    text: 'no action'
+  };
 };
 
 // end Unit class
 // Team class
 
-function Team(units) {
+function Team(units, name) {
   this.units = units;
+  this.name = name;
 }
 
 Team.prototype.nextUnit = function() {
@@ -124,6 +132,17 @@ Team.prototype.getUnitOnSquare = function(loc) {
   }
 };
 
+Team.prototype.isDead = function() {
+  this.trimDeadUnits();
+  return this.units.length <= 0;
+};
+
+Team.prototype.trimDeadUnits = function() {
+  this.units = this.units.filter(function(unit) {
+    return unit.health() > 0;
+  });
+};
+
 // end Team class
 
 var player = new Unit({
@@ -143,7 +162,7 @@ var player2 = new Unit({
   ]
 }, [2, 8]);
 
-var playerTeam = new Team([player, player2]);
+var playerTeam = new Team([player, player2], 'player1');
 
 var buttons = playerTeam.selectedUnit().makeButtonsForAttacks();
 
@@ -156,7 +175,7 @@ var enemy = new Unit({
   ]
 }, [3, 4]);
 
-var enemyTeam = new Team([enemy]);
+var enemyTeam = new Team([enemy], 'player2');
 var team1 = playerTeam;
 var team2 = enemyTeam;
 
@@ -221,11 +240,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
     if(clickedSquare && team1.selectedUnit().canAttackSquare(clickedSquare.loc) && clickedEnemyUnit) {
       team1.selectedUnit().attack(clickedEnemyUnit);
+      team2.trimDeadUnits();
     } else if(clickedSquare && !clickedEnemyUnit && team1.selectedUnit().canMoveTo(clickedSquare.loc)) {
       team1.selectedUnit().moveTo(clickedSquare.loc);
     } else if(clickedButton) {
       clickedButton.press();
     }
+    if(team1.isDead()) console.log(team2.name, ' wins');
+    if(team2.isDead()) console.log(team1.name, ' wins');
     if(team1.turnOver()) {
       var temp = team1;
       team1 = team2;
@@ -292,7 +314,7 @@ function isInArray(arr, val) {
 
 function arrayEqual(arr1, arr2) {
   if(!arr1 || !arr2 || arr1.length !== arr2.length) return false;
-  for (var i = 0; i < arr1.length; ++i) {
+  for (var i = 0; i < arr1.length; i++) {
     if (arr1[i] !== arr2[i]) return false;
   }
   return true;
