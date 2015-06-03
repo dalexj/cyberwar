@@ -102,8 +102,26 @@ Team.prototype.nextUnit = function() {
     if(!this.units[i].moveOver) return this.units[i];
   }
 };
+
+Team.prototype.restartTurn = function() {
+  this._selectedUnit = null;
+  for (var i = 0; i < this.units.length; i++) {
+    this.units[i].restartTurn();
+  }
+};
+
 Team.prototype.selectedUnit = function() {
   return this._selectedUnit || this.nextUnit();
+};
+
+Team.prototype.turnOver = function() {
+  return !this.nextUnit();
+};
+
+Team.prototype.getUnitOnSquare = function(loc) {
+  for (var i = 0; i < this.units.length; i++) {
+    if(this.units[i].isOnSquare(loc)) return this.units[i];
+  }
 };
 
 // end Team class
@@ -132,11 +150,13 @@ var buttons = player.makeButtonsForAttacks();
 var enemy = new Unit({
   maxLength: 3,
   maxMoves: 4,
-  squares: [[3, 4], [4, 4], [5, 4]],
+  squares: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
   attacks: [
     { name: 'attack', range: 2, damage: 2 }
   ]
 }, [3, 4]);
+
+var enemyTeam = new Team([enemy]);
 
 var board = { squares: [] };
 
@@ -180,10 +200,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     var clickedSquare = null;
     var clickedButton = null;
+    var clickedEnemyUnit = null;
     for (var i = 0; i < board.squares.length; i++) {
       var square = board.squares[i];
       if(square.x < x && square.x + square.size > x && square.y < y && square.y + square.size > y) {
         clickedSquare = square;
+        clickedEnemyUnit = enemyTeam.getUnitOnSquare(square.loc);
         break;
       }
     }
@@ -195,12 +217,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
       }
     }
-    if(clickedSquare && playerTeam.selectedUnit().canAttack(enemy, clickedSquare.loc)) {
-      playerTeam.selectedUnit().attack(enemy);
-    } else if(clickedSquare && playerTeam.selectedUnit().canMoveTo(clickedSquare.loc)) {
+    if(clickedSquare && playerTeam.selectedUnit().canAttackSquare(clickedSquare.loc) && clickedEnemyUnit) {
+      playerTeam.selectedUnit().attack(clickedEnemyUnit);
+    } else if(clickedSquare && !clickedEnemyUnit && playerTeam.selectedUnit().canMoveTo(clickedSquare.loc)) {
       playerTeam.selectedUnit().moveTo(clickedSquare.loc);
     } else if(clickedButton) {
       clickedButton.press();
+    }
+    if(playerTeam.turnOver()) {
+      playerTeam.restartTurn();
     }
     drawOnCanvas(ctx);
   }, false);
