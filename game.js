@@ -1,4 +1,6 @@
 
+// Unit class
+
 function Unit(options, loc) {
   this.maxMoves = options.maxMoves;
   this.maxLength = options.maxLength;
@@ -88,6 +90,24 @@ Unit.prototype.makeButtonsForAttacks = function() {
   });
 };
 
+// end Unit class
+// Team class
+
+function Team(units) {
+  this.units = units;
+}
+
+Team.prototype.nextUnit = function() {
+  for (var i = 0; i < this.units.length; i++) {
+    if(!this.units[i].moveOver) return this.units[i];
+  }
+};
+Team.prototype.selectedUnit = function() {
+  return this._selectedUnit || this.nextUnit();
+};
+
+// end Team class
+
 var player = new Unit({
   maxLength: 3,
   maxMoves: 4,
@@ -105,17 +125,7 @@ var player2 = new Unit({
   ]
 }, [2, 8]);
 
-var playerQ = {
-  units: [player, player2],
-  nextUnit: function() {
-    for (var i = 0; i < this.units.length; i++) {
-      if(!this.units[i].moveOver) return this.units[i];
-    }
-  },
-  selectedUnit: function() {
-    return this._selectedUnit || this.nextUnit();
-  }
-};
+var playerTeam = new Team([player, player2]);
 
 var buttons = player.makeButtonsForAttacks();
 
@@ -185,10 +195,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
       }
     }
-    if(clickedSquare && playerQ.selectedUnit().canAttack(enemy, clickedSquare.loc)) {
-      playerQ.selectedUnit().attack(enemy);
-    } else if(clickedSquare && playerQ.selectedUnit().canMoveTo(clickedSquare.loc)) {
-      playerQ.selectedUnit().moveTo(clickedSquare.loc);
+    if(clickedSquare && playerTeam.selectedUnit().canAttack(enemy, clickedSquare.loc)) {
+      playerTeam.selectedUnit().attack(enemy);
+    } else if(clickedSquare && playerTeam.selectedUnit().canMoveTo(clickedSquare.loc)) {
+      playerTeam.selectedUnit().moveTo(clickedSquare.loc);
     } else if(clickedButton) {
       clickedButton.press();
     }
@@ -205,12 +215,12 @@ function drawOnCanvas(ctx) {
   board.squares.forEach(function(square) {
     ctx.fillStyle = color1;
     var changed = false;
-    for (var i = 0; i < playerQ.units.length; i++) {
+    for (var i = 0; i < playerTeam.units.length; i++) {
       if(changed) break;
       changed = true;
-      if(arrayEqual(playerQ.units[i].head, square.loc)) {
+      if(arrayEqual(playerTeam.units[i].head, square.loc)) {
         ctx.fillStyle = color3;
-      } else if(isInArray(playerQ.units[i].squares, square.loc)) {
+      } else if(isInArray(playerTeam.units[i].squares, square.loc)) {
         ctx.fillStyle = color2;
       } else if(isInArray(enemy.squares, square.loc)) {
         ctx.fillStyle = color6;
@@ -218,11 +228,11 @@ function drawOnCanvas(ctx) {
         changed = false;
       }
     }
-    if(!changed && !playerQ.selectedUnit().attackMode && squareDist(square.loc, playerQ.selectedUnit().head) <= playerQ.selectedUnit().movesRemaining()) {
+    if(!changed && !playerTeam.selectedUnit().attackMode && squareDist(square.loc, playerTeam.selectedUnit().head) <= playerTeam.selectedUnit().movesRemaining()) {
       ctx.fillStyle = color4;
     }
     ctx.fillRect(square.x, square.y, square.size, square.size);
-    if(playerQ.selectedUnit().canAttackSquare(square.loc)) {
+    if(playerTeam.selectedUnit().canAttackSquare(square.loc)) {
       ctx.fillStyle = color5;
       ctx.textAlign = 'center';
       ctx.font = '' + size + 'px monospace';
