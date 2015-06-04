@@ -132,6 +132,12 @@ Team.prototype.getUnitOnSquare = function(loc) {
   }
 };
 
+Team.prototype.getUnitHeadOnSquare = function(loc) {
+  for (var i = 0; i < this.units.length; i++) {
+    if(arrayEqual(this.units[i].head, loc)) return this.units[i];
+  }
+};
+
 Team.prototype.isDead = function() {
   this.trimDeadUnits();
   return this.units.length <= 0;
@@ -195,7 +201,7 @@ var offset = 130;
 var size = 30;
 var space = 4;
 
-document.addEventListener("DOMContentLoaded", function(event) {
+document.addEventListener('DOMContentLoaded', function(event) {
   'use strict';
   var canvas = document.getElementById('game-canvas');
   canvas.width = '650';
@@ -221,12 +227,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     var clickedSquare = null;
     var clickedButton = null;
+    var clickedAllyUnit = null;
     var clickedEnemyUnit = null;
     for (var i = 0; i < board.squares.length; i++) {
       var square = board.squares[i];
       if(square.x < x && square.x + square.size > x && square.y < y && square.y + square.size > y) {
         clickedSquare = square;
         clickedEnemyUnit = team2.getUnitOnSquare(square.loc);
+        clickedAllyUnit = team1.getUnitHeadOnSquare(square.loc);
         break;
       }
     }
@@ -238,13 +246,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
       }
     }
-    if(clickedSquare && team1.selectedUnit().canAttackSquare(clickedSquare.loc) && clickedEnemyUnit) {
+    if(clickedSquare && clickedAllyUnit) {
+      team1._selectedUnit = clickedAllyUnit;
+    } else if(clickedSquare && team1.selectedUnit().canAttackSquare(clickedSquare.loc) && clickedEnemyUnit) {
       team1.selectedUnit().attack(clickedEnemyUnit);
+      team1._selectedUnit = null;
       team2.trimDeadUnits();
     } else if(clickedSquare && !clickedEnemyUnit && team1.selectedUnit().canMoveTo(clickedSquare.loc)) {
       team1.selectedUnit().moveTo(clickedSquare.loc);
     } else if(clickedButton) {
       clickedButton.press();
+      if(clickedButton.text === 'no action') team1._selectedUnit = null;
     }
     if(team1.isDead()) console.log(team2.name, ' wins');
     if(team2.isDead()) console.log(team1.name, ' wins');
