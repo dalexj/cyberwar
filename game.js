@@ -185,7 +185,19 @@ var enemyTeam = new Team([enemy], 'player2');
 var team1 = playerTeam;
 var team2 = enemyTeam;
 
-var board = { squares: [] };
+var board = { squares: [], not: [
+    [4, 8], [4, 9], [4, 10], [4, 11], [4, 12], [4, 13], [5, 8],
+    [5, 9], [5, 10], [5, 11], [5, 12], [5, 13], [6, 8], [6, 9],
+    [6, 10], [6, 11], [6, 12], [6, 13], [7, 8], [7, 9], [7, 10],
+    [7, 11], [7, 12], [7, 13], [8, 8], [8, 9], [8, 10], [8, 11],
+    [8, 12], [8, 13], [9, 8], [9, 9], [9, 10], [9, 11], [9, 12],
+    [9, 13], [10, 8], [10, 9], [10, 10], [10, 11], [10, 12], [10, 13],
+    [11, 8], [11, 9], [11, 10], [11, 11], [11, 12], [11, 13], [12, 8],
+    [12, 9], [12, 10], [12, 11], [12, 12], [12, 13], [13, 8], [13, 9],
+    [13, 10], [13, 11], [13, 12], [13, 13], [14, 8], [14, 9], [14, 10],
+    [14, 11], [14, 12], [14, 13]
+  ]
+};
 
 var color1 = 'rgb(100,200,100)';
 var color2 = 'rgb(200,100,200)';
@@ -210,9 +222,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   var xMany = Math.floor((canvas.width - space - offset) / (size + space));
   var yMany = Math.floor((canvas.height - space) / (size + space));
+  console.log(xMany, yMany);
 
   for (var i = 0; i < xMany; i++) {
     for (var j = 0; j < yMany; j++) {
+      if(isInArray(board.not, [i, j])) continue;
       var x = space + i*(size + space);
       var y = space + j*(size + space);
       board.squares.push({ x: x + offset, y: y, size: size, loc: [i, j] });
