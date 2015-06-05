@@ -222,7 +222,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   var xMany = Math.floor((canvas.width - space - offset) / (size + space));
   var yMany = Math.floor((canvas.height - space) / (size + space));
-  console.log(xMany, yMany);
 
   for (var i = 0; i < xMany; i++) {
     for (var j = 0; j < yMany; j++) {
