@@ -1,0 +1,16 @@
+window.map = '' +
+'MMMMMMMMM......\n'+
+'MMMMMMMMMMMMMMM\n'+
+'MMMMMMMMMMMMMMM\n'+
+'MMMMMMMMMMMMMMM\n'+
+'MMMMMMMMMMMMMMM\n'+
+'MMMMMMMMMMMMMMM\n'+
+'MMMMMMMMMMMMMMM\n'+
+'MMMMMMMMMMMMMMM\n'+
+'MMMMMMMMMMMMMMM\n'+
+'MMMMMMM........\n'+
+'MMMMMMM........\n'+
+'MMMMMMM........\n'+
+'MMMMMMM........\n'+
+'MMMMMMM........\n'+
+'MMMMMMM........\n';

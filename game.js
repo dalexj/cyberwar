@@ -199,6 +199,20 @@ var board = { squares: [], not: [
   ]
 };
 
+function readMap(m) {
+  var abc = [];
+  m.trim().split('\n').forEach(function(line, i) {
+    line.split('').forEach(function(letter, j) {
+      if(letter === '.') abc.push([j,i]);
+    });
+  });
+  return abc;
+}
+if(window.map) {
+  console.log(readMap(window.map).map(function(a) { return a.join(', ');}));
+  board.not = readMap(window.map);
+}
+
 var color1 = 'rgb(100,200,100)';
 var color2 = 'rgb(200,100,200)';
 var color3 = 'rgb(0,100,100)';
