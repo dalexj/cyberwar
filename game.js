@@ -92,10 +92,30 @@ Unit.prototype.makeButtonsForAttacks = function() {
 
 Unit.prototype.noAttackButton = function() {
   return {
-    press: function() { unit.moveOver = true; },
+    press: this.doNothing,
     text: 'no action'
   };
 };
+
+Unit.prototype.doNothing = function() {
+  unit.moveOver = true;
+};
+
+function createHack(loc) {
+  return new Unit({
+    maxMoves: 2,
+    maxLength: 4,
+    attacks: [{ name: 'slice', damage: 2, range: 1}]
+  }, loc);
+}
+
+function createBug(loc) {
+  return new Unit({
+    maxMoves: 5,
+    maxLength: 1,
+    attacks: [{ name: 'glitch', damage: 2, range: 1 }]
+  }, loc);
+}
 
 // end Unit class
 // Team class
@@ -151,22 +171,8 @@ Team.prototype.trimDeadUnits = function() {
 
 // end Team class
 
-var player = new Unit({
-  maxLength: 3,
-  maxMoves: 4,
-  attacks: [
-    { name: 'attack1', range: 2, damage: 2 },
-    { name: 'attack2', range: 1, damage: 3 }
-  ]
-}, [2, 2]);
-var player2 = new Unit({
-  maxLength: 2,
-  maxMoves: 6,
-  attacks: [
-    { name: 'attack1', range: 2, damage: 2 },
-    { name: 'attack2', range: 1, damage: 3 }
-  ]
-}, [2, 8]);
+var player = createHack([2,2]);
+var player2 = createBug([2, 8]);
 
 var playerTeam = new Team([player, player2], 'player1');
 
@@ -209,7 +215,6 @@ function readMap(m) {
   return abc;
 }
 if(window.map) {
-  console.log(readMap(window.map).map(function(a) { return a.join(', ');}));
   board.not = readMap(window.map);
 }
 
@@ -275,8 +280,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
     if(clickedSquare && clickedAllyUnit) {
       team1._selectedUnit = clickedAllyUnit;
-    } else if(clickedSquare && team1.selectedUnit().canAttackSquare(clickedSquare.loc) && clickedEnemyUnit) {
-      team1.selectedUnit().attack(clickedEnemyUnit);
+    } else if(clickedSquare && team1.selectedUnit().canAttackSquare(clickedSquare.loc)) {
+      if(clickedEnemyUnit) {
+        team1.selectedUnit().attack(clickedEnemyUnit);
+      } else {
+        team1.selectedUnit().doNothing();
+      }
       team1._selectedUnit = null;
       team2.trimDeadUnits();
     } else if(clickedSquare && !clickedEnemyUnit && team1.selectedUnit().canMoveTo(clickedSquare.loc)) {
