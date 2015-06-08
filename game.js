@@ -174,9 +174,9 @@ Team.prototype.trimDeadUnits = function() {
 var player = createHack([2,2]);
 var player2 = createBug([2, 8]);
 
-var playerTeam = new Team([player, player2], 'player1');
+var playerTeam = new Team([], 'player1');
 
-var buttons = playerTeam.selectedUnit().makeButtonsForAttacks();
+var buttons = [{text: 'hi'}]; //playerTeam.selectedUnit().makeButtonsForAttacks();
 
 var enemy = new Unit({
   maxLength: 9,
@@ -190,6 +190,7 @@ var enemy = new Unit({
 var enemyTeam = new Team([enemy], 'player2');
 var team1 = playerTeam;
 var team2 = enemyTeam;
+var placingPhase = true;
 
 var board = { squares: [], not: [
     [4, 8], [4, 9], [4, 10], [4, 11], [4, 12], [4, 13], [5, 8],
@@ -202,7 +203,8 @@ var board = { squares: [], not: [
     [12, 9], [12, 10], [12, 11], [12, 12], [12, 13], [13, 8], [13, 9],
     [13, 10], [13, 11], [13, 12], [13, 13], [14, 8], [14, 9], [14, 10],
     [14, 11], [14, 12], [14, 13]
-  ]
+  ],
+  openSpots: [[1,1]]
 };
 
 function readMap(m) {
@@ -278,31 +280,38 @@ document.addEventListener('DOMContentLoaded', function(event) {
         }
       }
     }
-    if(clickedSquare && clickedAllyUnit) {
-      team1._selectedUnit = clickedAllyUnit;
-    } else if(clickedSquare && team1.selectedUnit().canAttackSquare(clickedSquare.loc)) {
-      if(clickedEnemyUnit) {
-        team1.selectedUnit().attack(clickedEnemyUnit);
-      } else {
-        team1.selectedUnit().doNothing();
+    if(placingPhase) {
+      if(clickedSquare && isInArray(board.openSpots, clickedSquare.loc)) {
+        placingPhase = false;
+        playerTeam.units.push(createHack(clickedSquare.loc));
       }
-      team1._selectedUnit = null;
-      team2.trimDeadUnits();
-    } else if(clickedSquare && !clickedEnemyUnit && team1.selectedUnit().canMoveTo(clickedSquare.loc)) {
-      team1.selectedUnit().moveTo(clickedSquare.loc);
-    } else if(clickedButton) {
-      clickedButton.press();
-      if(clickedButton.text === 'no action') team1._selectedUnit = null;
+    } else {
+      if(clickedSquare && clickedAllyUnit) {
+        team1._selectedUnit = clickedAllyUnit;
+      } else if(clickedSquare && team1.selectedUnit().canAttackSquare(clickedSquare.loc)) {
+        if(clickedEnemyUnit) {
+          team1.selectedUnit().attack(clickedEnemyUnit);
+        } else {
+          team1.selectedUnit().doNothing();
+        }
+        team1._selectedUnit = null;
+        team2.trimDeadUnits();
+      } else if(clickedSquare && !clickedEnemyUnit && team1.selectedUnit().canMoveTo(clickedSquare.loc)) {
+        team1.selectedUnit().moveTo(clickedSquare.loc);
+      } else if(clickedButton) {
+        clickedButton.press();
+        if(clickedButton.text === 'no action') team1._selectedUnit = null;
+      }
+      if(team1.isDead()) console.log(team2.name, ' wins');
+      if(team2.isDead()) console.log(team1.name, ' wins');
+      if(team1.turnOver()) {
+        var temp = team1;
+        team1 = team2;
+        team2 = temp;
+        team1.restartTurn();
+      }
+      buttons = team1.selectedUnit().makeButtonsForAttacks();
     }
-    if(team1.isDead()) console.log(team2.name, ' wins');
-    if(team2.isDead()) console.log(team1.name, ' wins');
-    if(team1.turnOver()) {
-      var temp = team1;
-      team1 = team2;
-      team2 = temp;
-      team1.restartTurn();
-    }
-    buttons = team1.selectedUnit().makeButtonsForAttacks();
     drawOnCanvas(ctx);
   }, false);
 });
@@ -329,11 +338,15 @@ function drawOnCanvas(ctx) {
         changed = false;
       }
     }
-    if(!changed && !team1.selectedUnit().attackMode && squareDist(square.loc, team1.selectedUnit().head) <= team1.selectedUnit().movesRemaining()) {
+    if(!placingPhase && !changed && !team1.selectedUnit().attackMode && squareDist(square.loc, team1.selectedUnit().head) <= team1.selectedUnit().movesRemaining()) {
       ctx.fillStyle = color4;
     }
+    if(placingPhase && isInArray(board.openSpots, square.loc)) {
+      console.log('a', square.loc);
+      ctx.fillStyle = color7;
+    }
     ctx.fillRect(square.x, square.y, square.size, square.size);
-    if(team1.selectedUnit().canAttackSquare(square.loc)) {
+    if(!placingPhase && team1.selectedUnit().canAttackSquare(square.loc)) {
       ctx.fillStyle = color5;
       ctx.textAlign = 'center';
       ctx.font = '' + size + 'px monospace';
