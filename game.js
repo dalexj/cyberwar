@@ -175,8 +175,11 @@ var player = createHack([2,2]);
 var player2 = createBug([2, 8]);
 
 var playerTeam = new Team([], 'player1');
-
-var buttons = [{text: 'hi'}]; //playerTeam.selectedUnit().makeButtonsForAttacks();
+var unitToPlace = 'none';
+var buttons = [
+  {text: 'hack', press: function() { unitToPlace = createHack; } },
+  {text: 'bug',  press: function() { unitToPlace = createBug; } }
+]; //playerTeam.selectedUnit().makeButtonsForAttacks();
 
 var enemy = new Unit({
   maxLength: 9,
@@ -259,31 +262,20 @@ document.addEventListener('DOMContentLoaded', function(event) {
     var x = e.pageX - this.offsetLeft;
     var y = e.pageY - this.offsetTop;
 
-    var clickedSquare = null;
-    var clickedButton = null;
+    var clickedSquare = findSquareClicked(x, y);
+    var clickedButton = findButtonClicked(x, y);
     var clickedAllyUnit = null;
     var clickedEnemyUnit = null;
-    for (var i = 0; i < board.squares.length; i++) {
-      var square = board.squares[i];
-      if(square.x < x && square.x + square.size > x && square.y < y && square.y + square.size > y) {
-        clickedSquare = square;
-        clickedEnemyUnit = team2.getUnitOnSquare(square.loc);
-        clickedAllyUnit = team1.getUnitHeadOnSquare(square.loc);
-        break;
-      }
-    }
-    if(!clickedSquare) {
-      for (var j = 0; j < buttons.length; j++) {
-        if(10 < x && offset-10 > x && 100 + (35 * j) < y && 130 + (35 * j) > y) {
-          clickedButton = buttons[j];
-          break;
-        }
-      }
+    if(clickedSquare) {
+      clickedEnemyUnit = team2.getUnitOnSquare(clickedSquare.loc);
+      clickedAllyUnit = team1.getUnitHeadOnSquare(clickedSquare.loc);
     }
     if(placingPhase) {
       if(clickedSquare && isInArray(board.openSpots, clickedSquare.loc)) {
         placingPhase = false;
-        playerTeam.units.push(createHack(clickedSquare.loc));
+        playerTeam.units.push(unitToPlace(clickedSquare.loc));
+      } else if(clickedButton) {
+        clickedButton.press();
       }
     } else {
       if(clickedSquare && clickedAllyUnit) {
@@ -315,6 +307,25 @@ document.addEventListener('DOMContentLoaded', function(event) {
     drawOnCanvas(ctx);
   }, false);
 });
+
+function findButtonClicked(xClicked, yClicked) {
+  for (var i = 0; i < buttons.length; i++) {
+    if(10 < xClicked && offset-10 > xClicked &&
+      100 + (35 * i) < yClicked && 130 + (35 * i) > yClicked) {
+      return buttons[i];
+    }
+  }
+}
+
+function findSquareClicked(xClicked, yClicked) {
+  for (var i = 0; i < board.squares.length; i++) {
+    var square = board.squares[i];
+    if(square.x < xClicked && square.x + square.size > xClicked &&
+       square.y < yClicked && square.y + square.size > yClicked) {
+      return square;
+    }
+  }
+}
 
 function squareNextTo(a, b) {
   return squareDist(a, b) === 1;
