@@ -163,6 +163,12 @@ Team.prototype.isDead = function() {
   return this.units.length <= 0;
 };
 
+Team.prototype.deleteUnitOnSqaure = function(loc) {
+  this.units = this.units.filter(function(unit) {
+    return !arrayEqual(unit.head, loc);
+  });
+};
+
 Team.prototype.trimDeadUnits = function() {
   this.units = this.units.filter(function(unit) {
     return unit.health() > 0;
@@ -207,8 +213,33 @@ var board = { squares: [], not: [
     [13, 10], [13, 11], [13, 12], [13, 13], [14, 8], [14, 9], [14, 10],
     [14, 11], [14, 12], [14, 13]
   ],
-  openSpots: [[1,1]]
+  openSpots: [[1,1]],
+  isOpenSquare: function(loc) {
+    var square = this.getSquare(loc);
+    return square && square.open;
+  },
+  getSquare: function(loc) {
+    for (var i = 0; i < this.squares.length; i++) {
+      if(arrayEqual(this.squares[i].loc, loc))
+        return this.squares[i];
+    }
+  },
+  markSqaureWithUnit: function(loc) {
+    this.getSquare(loc).open = false;
+  }
 };
+
+function initalizeBoard(xMany, yMany) {
+  for (var i = 0; i < xMany; i++) {
+    for (var j = 0; j < yMany; j++) {
+      var exists = !isInArray(board.not, [i, j]);
+      var open = isInArray(board.openSpots, [i, j]);
+      var x = space + i*(size + space);
+      var y = space + j*(size + space);
+      board.squares.push({ x: x + offset, y: y, size: size, loc: [i, j], open: open, exists: exists });
+    }
+  }
+}
 
 function readMap(m) {
   var abc = [];
@@ -246,15 +277,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   var xMany = Math.floor((canvas.width - space - offset) / (size + space));
   var yMany = Math.floor((canvas.height - space) / (size + space));
-
-  for (var i = 0; i < xMany; i++) {
-    for (var j = 0; j < yMany; j++) {
-      if(isInArray(board.not, [i, j])) continue;
-      var x = space + i*(size + space);
-      var y = space + j*(size + space);
-      board.squares.push({ x: x + offset, y: y, size: size, loc: [i, j] });
-    }
-  }
+  initalizeBoard(xMany, yMany);
   drawOnCanvas(ctx);
 
 
@@ -266,13 +289,16 @@ document.addEventListener('DOMContentLoaded', function(event) {
     var clickedButton = findButtonClicked(x, y);
     var clickedAllyUnit = null;
     var clickedEnemyUnit = null;
+    if(placingPhase && clickedExtraButton(x, y) && playerTeam.units.length > 0) {
+      placingPhase = false;
+    }
     if(clickedSquare) {
       clickedEnemyUnit = team2.getUnitOnSquare(clickedSquare.loc);
       clickedAllyUnit = team1.getUnitHeadOnSquare(clickedSquare.loc);
     }
     if(placingPhase) {
-      if(clickedSquare && isInArray(board.openSpots, clickedSquare.loc)) {
-        placingPhase = false;
+      if(clickedSquare && board.isOpenSquare(clickedSquare.loc)) {
+        playerTeam.deleteUnitOnSqaure(clickedSquare.loc);
         playerTeam.units.push(unitToPlace(clickedSquare.loc));
       } else if(clickedButton) {
         clickedButton.press();
@@ -288,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         }
         team1._selectedUnit = null;
         team2.trimDeadUnits();
-      } else if(clickedSquare && !clickedEnemyUnit && team1.selectedUnit().canMoveTo(clickedSquare.loc)) {
+      } else if(clickedSquare && clickedSquare.exists && !clickedEnemyUnit && team1.selectedUnit().canMoveTo(clickedSquare.loc)) {
         team1.selectedUnit().moveTo(clickedSquare.loc);
       } else if(clickedButton) {
         clickedButton.press();
@@ -317,6 +343,11 @@ function findButtonClicked(xClicked, yClicked) {
   }
 }
 
+function clickedExtraButton(xClicked, yClicked) {
+  return 10 < xClicked && offset-10 > xClicked &&
+    400 < yClicked && 430 > yClicked;
+}
+
 function findSquareClicked(xClicked, yClicked) {
   for (var i = 0; i < board.squares.length; i++) {
     var square = board.squares[i];
@@ -334,6 +365,7 @@ function squareNextTo(a, b) {
 function drawOnCanvas(ctx) {
   clearCanvas(ctx);
   board.squares.forEach(function(square) {
+    if(!square.exists) return;
     ctx.fillStyle = color1;
     var changed = false;
     for (var i = 0; i < team1.units.length; i++) {
@@ -352,8 +384,7 @@ function drawOnCanvas(ctx) {
     if(!placingPhase && !changed && !team1.selectedUnit().attackMode && squareDist(square.loc, team1.selectedUnit().head) <= team1.selectedUnit().movesRemaining()) {
       ctx.fillStyle = color4;
     }
-    if(placingPhase && isInArray(board.openSpots, square.loc)) {
-      console.log('a', square.loc);
+    if(placingPhase && board.isOpenSquare(square.loc)) {
       ctx.fillStyle = color7;
     }
     ctx.fillRect(square.x, square.y, square.size, square.size);
@@ -374,6 +405,12 @@ function drawOnCanvas(ctx) {
     ctx.textAlign = 'center';
     ctx.fillText(button.text, 10 + (offset / 2), 125 + (35*index));
   });
+  ctx.fillStyle = color6;
+  ctx.fillRect(10, 400, offset-20, 30);
+  ctx.fillStyle = white;
+  ctx.font = '20px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('start', 10 + (offset / 2), 425);
 }
 
 function isInArray(arr, val) {
