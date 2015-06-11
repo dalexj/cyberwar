@@ -10,6 +10,8 @@ function Unit(options, loc) {
   this.attackMode = false;
   this.attacks = options.attacks || [];
   this.moveOver = false;
+  this.image = options.image;
+  this.color = options.color;
 }
 
 Unit.prototype.movesRemaining = function() {
@@ -105,7 +107,9 @@ function createHack(loc) {
   return new Unit({
     maxMoves: 2,
     maxLength: 4,
-    attacks: [{ name: 'slice', damage: 2, range: 1}]
+    attacks: [{ name: 'slice', damage: 2, range: 1}],
+    image: 'H',
+    color: 'rgb(33,199,241)'
   }, loc);
 }
 
@@ -113,7 +117,9 @@ function createBug(loc) {
   return new Unit({
     maxMoves: 5,
     maxLength: 1,
-    attacks: [{ name: 'glitch', damage: 2, range: 1 }]
+    attacks: [{ name: 'glitch', damage: 2, range: 1 }],
+    image: 'B',
+    color: 'rgb(155,277,83)'
   }, loc);
 }
 
@@ -193,7 +199,9 @@ var enemy = new Unit({
   squares: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
   attacks: [
     { name: 'attack', range: 2, damage: 2 }
-  ]
+  ],
+  color: 'rgb(45,45,45)',
+  image: 'E'
 }, [3, 4]);
 
 var enemyTeam = new Team([enemy], 'player2');
@@ -223,9 +231,6 @@ var board = { squares: [], not: [
       if(arrayEqual(this.squares[i].loc, loc))
         return this.squares[i];
     }
-  },
-  markSqaureWithUnit: function(loc) {
-    this.getSquare(loc).open = false;
   }
 };
 
@@ -368,15 +373,16 @@ function drawOnCanvas(ctx) {
     if(!square.exists) return;
     ctx.fillStyle = color1;
     var changed = false;
-    for (var i = 0; i < team1.units.length; i++) {
+    var allUnits = team1.units.concat(team2.units);
+    var image = null;
+    for (var i = 0; i < allUnits.length; i++) {
       if(changed) break;
       changed = true;
-      if(arrayEqual(team1.units[i].head, square.loc)) {
-        ctx.fillStyle = color3;
-      } else if(isInArray(team1.units[i].squares, square.loc)) {
-        ctx.fillStyle = color2;
-      } else if(team2.getUnitOnSquare(square.loc)) {
-        ctx.fillStyle = color6;
+      if(allUnits[i].isOnSquare(square.loc)) {
+        ctx.fillStyle = allUnits[i].color;
+        if(arrayEqual(allUnits[i].head, square.loc)) {
+          image = allUnits[i].image;
+        }
       } else {
         changed = false;
       }
@@ -384,7 +390,7 @@ function drawOnCanvas(ctx) {
     if(!placingPhase && !changed && !team1.selectedUnit().attackMode && squareDist(square.loc, team1.selectedUnit().head) <= team1.selectedUnit().movesRemaining()) {
       ctx.fillStyle = color4;
     }
-    if(placingPhase && board.isOpenSquare(square.loc)) {
+    if(placingPhase && !changed && board.isOpenSquare(square.loc)) {
       ctx.fillStyle = color7;
     }
     ctx.fillRect(square.x, square.y, square.size, square.size);
@@ -393,6 +399,13 @@ function drawOnCanvas(ctx) {
       ctx.textAlign = 'center';
       ctx.font = '' + size + 'px monospace';
       ctx.fillText('X', square.x + size/2, square.y + size );
+    }
+    if(image) {
+      ctx.fillStyle = white;
+      ctx.textAlign = 'center';
+      ctx.font = '' + size + 'px monospace';
+      ctx.fillText(image, square.x + size/2, square.y + size );
+
     }
   });
   ctx.fillStyle = color7;
@@ -434,5 +447,5 @@ function squareDist(a, b) {
 }
 
 function clearCanvas(ctx) {
-  ctx.clearRect (0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
