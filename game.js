@@ -12,6 +12,7 @@ function Unit(options, loc) {
   this.moveOver = false;
   this.image = options.image;
   this.color = options.color;
+  this.name = options.name;
 }
 
 Unit.prototype.movesRemaining = function() {
@@ -109,7 +110,8 @@ function createHack(loc) {
     maxLength: 4,
     attacks: [{ name: 'slice', damage: 2, range: 1}],
     image: 'H',
-    color: 'rgb(33,199,241)'
+    color: 'rgb(43,169,211)',
+    name: 'hack'
   }, loc);
 }
 
@@ -119,7 +121,8 @@ function createBug(loc) {
     maxLength: 1,
     attacks: [{ name: 'glitch', damage: 2, range: 1 }],
     image: 'B',
-    color: 'rgb(155,277,83)'
+    color: 'rgb(155,216,83)',
+    name: 'bug'
   }, loc);
 }
 
@@ -181,16 +184,42 @@ Team.prototype.trimDeadUnits = function() {
   });
 };
 
+Team.prototype.unitCount = function() {
+  var count = {};
+  for (var i = 0; i < this.units.length; i++) {
+    var name = this.units[i].name;
+    if(!count[name]) count[name] = 0;
+    count[name]++;
+  }
+  return count;
+};
+
+Team.prototype.placeUnit = function(unitName, loc) {
+  var createUnit = {
+    bug: createBug,
+    hack: createHack
+  }[unitName];
+  if(!createUnit) return;
+  this.units.push(createUnit(loc));
+};
+
 // end Team class
 
-var player = createHack([2,2]);
-var player2 = createBug([2, 8]);
+var ownedUnits = {
+  bug: 2,
+  hack: 1
+};
+
+function hasUnitLeft(owned, placed, unit) {
+  console.log(owned, placed, unit);
+  return ownedUnits[unit] - (placed[unit] || 0) > 0;
+}
 
 var playerTeam = new Team([], 'player1');
 var unitToPlace = 'none';
 var buttons = [
-  {text: 'hack', press: function() { unitToPlace = createHack; } },
-  {text: 'bug',  press: function() { unitToPlace = createBug; } }
+  {text: 'hack', press: function() { unitToPlace = 'hack'; } },
+  {text: 'bug',  press: function() { unitToPlace = 'bug'; } }
 ]; //playerTeam.selectedUnit().makeButtonsForAttacks();
 
 var enemy = new Unit({
@@ -200,8 +229,9 @@ var enemy = new Unit({
   attacks: [
     { name: 'attack', range: 2, damage: 2 }
   ],
-  color: 'rgb(45,45,45)',
-  image: 'E'
+  color: 'rgb(85,85,85)',
+  image: 'E',
+  name: 'enemy'
 }, [3, 4]);
 
 var enemyTeam = new Team([enemy], 'player2');
@@ -221,7 +251,7 @@ var board = { squares: [], not: [
     [13, 10], [13, 11], [13, 12], [13, 13], [14, 8], [14, 9], [14, 10],
     [14, 11], [14, 12], [14, 13]
   ],
-  openSpots: [[1,1]],
+  openSpots: [[1,1], [5,1], [1,5]],
   isOpenSquare: function(loc) {
     var square = this.getSquare(loc);
     return square && square.open;
@@ -302,9 +332,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
       clickedAllyUnit = team1.getUnitHeadOnSquare(clickedSquare.loc);
     }
     if(placingPhase) {
-      if(clickedSquare && board.isOpenSquare(clickedSquare.loc)) {
+      if(clickedSquare && board.isOpenSquare(clickedSquare.loc) && hasUnitLeft(ownedUnits, playerTeam.unitCount(), unitToPlace)) {
         playerTeam.deleteUnitOnSqaure(clickedSquare.loc);
-        playerTeam.units.push(unitToPlace(clickedSquare.loc));
+        playerTeam.placeUnit(unitToPlace, clickedSquare.loc);
       } else if(clickedButton) {
         clickedButton.press();
       }
