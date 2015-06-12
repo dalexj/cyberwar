@@ -88,7 +88,8 @@ Unit.prototype.makeButtonsForAttacks = function() {
         unit.attackMode = true;
         unit._currentAttack = attack;
       },
-      text: attack.name
+      text: attack.name,
+      getText: function() { return this.text; }
     };
   }).concat(this.noAttackButton());
 };
@@ -96,7 +97,8 @@ Unit.prototype.makeButtonsForAttacks = function() {
 Unit.prototype.noAttackButton = function() {
   return {
     press: this.doNothing,
-    text: 'no action'
+    text: 'no action',
+    getText: function() { return this.text; }
   };
 };
 
@@ -211,15 +213,18 @@ var ownedUnits = {
 };
 
 function hasUnitLeft(owned, placed, unit) {
-  console.log(owned, placed, unit);
-  return ownedUnits[unit] - (placed[unit] || 0) > 0;
+  return amountLeft(owned, placed, unit) > 0;
+}
+
+function amountLeft(owned, placed, unit) {
+  return ownedUnits[unit] - (placed[unit] || 0);
 }
 
 var playerTeam = new Team([], 'player1');
 var unitToPlace = 'none';
 var buttons = [
-  {text: 'hack', press: function() { unitToPlace = 'hack'; } },
-  {text: 'bug',  press: function() { unitToPlace = 'bug'; } }
+  {text: 'hack', getText: function() { return this.text + ' x' + amountLeft(ownedUnits, playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'hack'; } },
+  {text: 'bug',  getText: function() { return this.text + ' x' + amountLeft(ownedUnits, playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'bug'; } }
 ]; //playerTeam.selectedUnit().makeButtonsForAttacks();
 
 var enemy = new Unit({
@@ -446,7 +451,7 @@ function drawOnCanvas(ctx) {
     ctx.fillStyle = white;
     ctx.font = '20px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(button.text, 10 + (offset / 2), 125 + (35*index));
+    ctx.fillText(button.getText(), 10 + (offset / 2), 125 + (35*index));
   });
   ctx.fillStyle = color6;
   ctx.fillRect(10, 400, offset-20, 30);
