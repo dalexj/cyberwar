@@ -207,25 +207,27 @@ Team.prototype.placeUnit = function(unitName, loc) {
 
 // end Team class
 
-var ownedUnits = {
-  bug: 2,
-  hack: 1
+var saveState = {
+  ownedUnits: {
+    bug: 2,
+    hack: 1
+  }
 };
 
-function hasUnitLeft(owned, placed, unit) {
-  return amountLeft(owned, placed, unit) > 0;
+function hasUnitLeft(placed, unit) {
+  return amountLeft(placed, unit) > 0;
 }
 
-function amountLeft(owned, placed, unit) {
-  return ownedUnits[unit] - (placed[unit] || 0);
+function amountLeft(placed, unit) {
+  return saveState.ownedUnits[unit] - (placed[unit] || 0);
 }
 
 var playerTeam = new Team([], 'player1');
 var unitToPlace = 'none';
 var buttons = [
-  {text: 'hack', getText: function() { return this.text + ' x' + amountLeft(ownedUnits, playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'hack'; } },
-  {text: 'bug',  getText: function() { return this.text + ' x' + amountLeft(ownedUnits, playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'bug'; } }
-]; //playerTeam.selectedUnit().makeButtonsForAttacks();
+  {text: 'hack', getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'hack'; } },
+  {text: 'bug',  getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'bug'; } }
+];
 
 var enemy = new Unit({
   maxLength: 9,
@@ -337,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
       clickedAllyUnit = team1.getUnitHeadOnSquare(clickedSquare.loc);
     }
     if(placingPhase) {
-      if(clickedSquare && board.isOpenSquare(clickedSquare.loc) && hasUnitLeft(ownedUnits, playerTeam.unitCount(), unitToPlace)) {
+      if(clickedSquare && board.isOpenSquare(clickedSquare.loc) && hasUnitLeft(playerTeam.unitCount(), unitToPlace)) {
         playerTeam.deleteUnitOnSqaure(clickedSquare.loc);
         playerTeam.placeUnit(unitToPlace, clickedSquare.loc);
       } else if(clickedButton) {
