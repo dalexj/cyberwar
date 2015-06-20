@@ -231,7 +231,7 @@ var buttons = [
 
 var enemy = new Unit({
   maxLength: 9,
-  maxMoves: 4,
+  maxMoves: 3,
   squares: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
   attacks: [
     { name: 'attack', range: 2, damage: 2 }
