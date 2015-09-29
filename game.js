@@ -1,4 +1,15 @@
 
+var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { preload: preload, create: create, update: update });
+
+function preload() {
+}
+
+function create() {
+}
+
+function update() {
+}
+
 // Unit class
 
 function Unit(options, loc) {
