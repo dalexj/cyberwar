@@ -1,13 +1,22 @@
 
-var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { preload: preload, create: create, update: update });
+var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
+  phaserGame.stage.backgroundColor = '#ffffff';
 }
 
+var sidebar;
 function create() {
+  sidebar = new Phaser.Rectangle(10, 5, offset - 20, 488 - 20);
+  // ctx.fillStyle = color7;
+  // ctx.fillRect(10, 5, offset - 20, ctx.canvas.height - 20);
 }
 
 function update() {
+}
+
+function render() {
+  phaserGame.debug.geom(sidebar, color7);
 }
 
 // Unit class
