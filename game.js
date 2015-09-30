@@ -1,22 +1,53 @@
 
 var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { preload: preload, create: create, update: update, render: render });
 
+function CustomButton(x, y, text, onclick) {
+  onclick = onclick || function() { console.log('nothing implemented for button ' + text); };
+  this.sprite = phaserGame.add.button(x, y, 'button', onclick, this);
+  this.text = phaserGame.add.text(0, 0, text, {font: 'monospace', fontSize: 16, fill: '#ffffff'});
+  this.text.anchor.set(0.5);
+  this.updateTextLoc();
+}
+
+CustomButton.prototype.updateTextLoc = function() {
+  this.text.x = Math.floor(this.sprite.x + this.sprite.width / 2);
+  this.text.y = Math.floor(this.sprite.y + this.sprite.height / 2);
+};
+
+CustomButton.prototype.setText = function(newText) {
+  this.text.text = newText;
+};
+
+CustomButton.prototype.setImage = function(image) {
+  this.sprite.loadTexture(image);
+};
+
+
 function preload() {
   phaserGame.stage.backgroundColor = '#ffffff';
+  phaserGame.load.image('button', 'assets/sprites/button.png');
+  phaserGame.load.image('button2', 'assets/sprites/button2.png');
 }
 
 var sidebar;
+var theButtons;
 function create() {
-  sidebar = new Phaser.Rectangle(10, 5, offset - 20, 488 - 20);
-  // ctx.fillStyle = color7;
   // ctx.fillRect(10, 5, offset - 20, ctx.canvas.height - 20);
+  sidebar = phaserGame.add.graphics(0, 0);
+  sidebar.beginFill(0xc8c8c8);
+  sidebar.drawRect(10, 5, offset-20, 488 - 20);
+  sidebar.endFill();
+  theButtons = [
+    new CustomButton(10, 100 + (35 * 0), 'Hack x1'),
+    new CustomButton(10, 100 + (35 * 1), 'Bug x2'),
+    new CustomButton(10, 400, 'start')
+  ];
 }
 
 function update() {
 }
 
 function render() {
-  phaserGame.debug.geom(sidebar, color7);
 }
 
 // Unit class
