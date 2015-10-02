@@ -22,11 +22,25 @@ CustomButton.prototype.setImage = function(image) {
   this.sprite.loadTexture(image);
 };
 
+function CustomUnit(unit) {
+  this.unit = unit;
+  for (var i = 0; i < board.squares.length; i++) {
+    if(arrayEqual(board.squares[i].loc, this.unit.head)) {
+      phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, 'unicorn');
+    } else if (isInArray(this.unit.squares, board.squares[i].loc)){
+      phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, 'unicorn-background');
+    }
+  }
+}
+
 function preload() {
   phaserGame.stage.backgroundColor = '#ffffff';
   phaserGame.load.image('button', 'assets/sprites/button.png');
   phaserGame.load.image('button2', 'assets/sprites/button2.png');
   phaserGame.load.image('square', 'assets/sprites/square.png');
+  phaserGame.load.image('square2', 'assets/sprites/square2.png');
+  phaserGame.load.image('unicorn', 'assets/sprites/unicorn.png');
+  phaserGame.load.image('unicorn-background', 'assets/sprites/unicorn-background.png');
 }
 
 var graphics;
@@ -35,11 +49,14 @@ function create() {
   graphics = phaserGame.add.graphics(0, 0);
   graphics.beginFill(0xc8c8c8);
   graphics.drawRect(10, 5, offset-20, 488 - 20);
+  graphics.endFill();
   board.squares.forEach(function(square) {
     if(!square.exists) return;
     square.sprite = phaserGame.add.sprite(square.x, square.y, 'square');
   });
-  graphics.endFill();
+
+  new CustomUnit(team2.units[0]);
+
   theButtons = [
     new CustomButton(10, 100 + (35 * 0), 'Hack x1'),
     new CustomButton(10, 100 + (35 * 1), 'Bug x2'),
