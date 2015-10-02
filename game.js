@@ -1,15 +1,17 @@
 
 var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { preload: preload, create: create, update: update, render: render });
 
-function CustomButton(x, y, text, onclick) {
-  onclick = onclick || function() { console.log('nothing implemented for button ' + text); };
+function CustomButton(x, y, textFun, onclick) {
+  this.textFun = textFun;
+  onclick = onclick || function() { console.log('nothing implemented for button ' + this.textFun()); };
   this.sprite = phaserGame.add.button(x, y, 'button', onclick, this);
-  this.text = phaserGame.add.text(0, 0, text, {font: 'monospace', fontSize: 16, fill: '#ffffff'});
+  this.text = phaserGame.add.text(0, 0, this.textFun(), {font: 'monospace', fontSize: 16, fill: '#ffffff'});
   this.text.anchor.set(0.5);
-  this.updateTextLoc();
+  this.update();
 }
 
-CustomButton.prototype.updateTextLoc = function() {
+CustomButton.prototype.update = function() {
+  this.setText(this.textFun());
   this.text.x = Math.floor(this.sprite.x + this.sprite.width / 2);
   this.text.y = Math.floor(this.sprite.y + this.sprite.height / 2);
 };
@@ -53,18 +55,33 @@ function create() {
   board.squares.forEach(function(square) {
     if(!square.exists) return;
     square.sprite = phaserGame.add.sprite(square.x, square.y, 'square');
+    if(square.open) {
+      square.clicker = phaserGame.add.button(square.x, square.y, 'square2', function() {
+        if(hasUnitLeft(playerTeam.unitCount(), unitToPlace)) {
+          playerTeam.deleteUnitOnSqaure(square.loc);
+          playerTeam.placeUnit(unitToPlace, square.loc);
+        }
+      }, this);
+    }
   });
 
-  new CustomUnit(team2.units[0]);
+  // new CustomUnit(team2.units[0]);
+
+
 
   theButtons = [
-    new CustomButton(10, 100 + (35 * 0), 'Hack x1'),
-    new CustomButton(10, 100 + (35 * 1), 'Bug x2'),
-    new CustomButton(10, 400, 'start')
+    new CustomButton(10, 100 + (35 * 0), function() { return 'Hack x' + amountLeft(playerTeam.unitCount(), 'hack'); }, function() { unitToPlace = 'hack'; }),
+    new CustomButton(10, 100 + (35 * 1), function() { return 'Bug x'  + amountLeft(playerTeam.unitCount(), 'bug');  }, function() { unitToPlace = 'bug'; }),
+    new CustomButton(10, 400, function(){ return 'start'; }, function() {
+      if(playerTeam.units.length > 0) placingPhase = false;
+    })
   ];
 }
 
 function update() {
+  theButtons.forEach(function(button) {
+    button.update();
+  });
 }
 
 function render() {
@@ -84,6 +101,8 @@ function Unit(options, loc) {
   this.image = options.image;
   this.color = options.color;
   this.name = options.name;
+  var u = this;
+  setTimeout(function() { new CustomUnit(u); }, 200);
 }
 
 Unit.prototype.movesRemaining = function() {
@@ -300,21 +319,7 @@ var buttons = [
   {text: 'bug',  getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'bug'; } }
 ];
 
-var enemy = new Unit({
-  maxLength: 9,
-  maxMoves: 3,
-  squares: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
-  attacks: [
-    { name: 'attack', range: 2, damage: 2 }
-  ],
-  color: 'rgb(85,85,85)',
-  image: 'E',
-  name: 'enemy'
-}, [3, 4]);
-
-var enemyTeam = new Team([enemy], 'player2');
 var team1 = playerTeam;
-var team2 = enemyTeam;
 var placingPhase = true;
 
 var board = { squares: [], not: [
@@ -380,6 +385,20 @@ var white = 'rgb(255,255,255)';
 var offset = 130;
 var size = 30;
 var space = 4;
+
+var enemy = new Unit({
+  maxLength: 9,
+  maxMoves: 3,
+  squares: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
+  attacks: [
+    { name: 'attack', range: 2, damage: 2 }
+  ],
+  color: 'rgb(85,85,85)',
+  image: 'E',
+  name: 'enemy'
+}, [3, 4]);
+var enemyTeam = new Team([enemy], 'player2');
+var team2 = enemyTeam;
 
 document.addEventListener('DOMContentLoaded', function(event) {
   'use strict';
