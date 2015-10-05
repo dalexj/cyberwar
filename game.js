@@ -28,9 +28,9 @@ function CustomUnit(unit) {
   this.unit = unit;
   for (var i = 0; i < board.squares.length; i++) {
     if(arrayEqual(board.squares[i].loc, this.unit.head)) {
-      phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, 'unicorn');
+      phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, this.unit.name);
     } else if (isInArray(this.unit.squares, board.squares[i].loc)){
-      phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, 'unicorn-background');
+      phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, this.unit.name + '-background');
     }
   }
 }
@@ -43,6 +43,10 @@ function preload() {
   phaserGame.load.image('square2', 'assets/sprites/square2.png');
   phaserGame.load.image('unicorn', 'assets/sprites/unicorn.png');
   phaserGame.load.image('unicorn-background', 'assets/sprites/unicorn-background.png');
+  phaserGame.load.image('hack', 'assets/sprites/hack.png');
+  phaserGame.load.image('hack-background', 'assets/sprites/hack-background.png');
+  phaserGame.load.image('bug', 'assets/sprites/bug.png');
+  phaserGame.load.image('bug-background', 'assets/sprites/bug-background.png');
 }
 
 var graphics;
@@ -89,7 +93,7 @@ function render() {
 
 // Unit class
 
-function Unit(options, loc) {
+function Unit(options, loc, name) {
   this.maxMoves = options.maxMoves;
   this.maxLength = options.maxLength;
   this.movesMade = 0;
@@ -395,7 +399,7 @@ var enemy = new Unit({
   ],
   color: 'rgb(85,85,85)',
   image: 'E',
-  name: 'enemy'
+  name: 'unicorn'
 }, [3, 4]);
 var enemyTeam = new Team([enemy], 'player2');
 var team2 = enemyTeam;
