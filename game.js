@@ -1,17 +1,21 @@
 
 var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { preload: preload, create: create, update: update, render: render });
 
-function CustomButton(x, y, textFun, onclick) {
-  this.textFun = textFun;
-  onclick = onclick || function() { console.log('nothing implemented for button ' + this.textFun()); };
+function MovementOption(x, y, canPress) {
+  this.sprite = phaserGame.add.sprite(x, y, 'movement-option');
+}
+
+function CustomButton(x, y, getText, onclick) {
+  this.getText = getText;
+  onclick = onclick || function() { console.log('nothing implemented for button ' + this.getText()); };
   this.sprite = phaserGame.add.button(x, y, 'button', onclick, this);
-  this.text = phaserGame.add.text(0, 0, this.textFun(), {font: 'monospace', fontSize: 16, fill: '#ffffff'});
+  this.text = phaserGame.add.text(0, 0, this.getText(), {font: 'monospace', fontSize: 16, fill: '#ffffff'});
   this.text.anchor.set(0.5);
   this.update();
 }
 
 CustomButton.prototype.update = function() {
-  this.setText(this.textFun());
+  this.setText(this.getText());
   this.text.x = Math.floor(this.sprite.x + this.sprite.width / 2);
   this.text.y = Math.floor(this.sprite.y + this.sprite.height / 2);
 };
@@ -33,6 +37,7 @@ function CustomUnit(unit) {
       phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, this.unit.name + '-background');
     }
   }
+
 }
 
 function preload() {
@@ -47,6 +52,7 @@ function preload() {
   phaserGame.load.image('hack-background', 'assets/sprites/hack-background.png');
   phaserGame.load.image('bug', 'assets/sprites/bug.png');
   phaserGame.load.image('bug-background', 'assets/sprites/bug-background.png');
+  phaserGame.load.image('movement-option', 'assets/sprites/movement-option.png');
 }
 
 var graphics;
