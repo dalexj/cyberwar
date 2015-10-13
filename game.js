@@ -1,8 +1,13 @@
 
 var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { preload: preload, create: create, update: update, render: render });
 
+function convertSquareToPixels(coords) {
+  return [space + offset + coords[0]*(size + space), space + coords[1]*(size + space)];
+}
+
 function MovementOption(x, y, canPress) {
-  this.sprite = phaserGame.add.sprite(x, y, 'movement-option');
+  var pixels = convertSquareToPixels([x, y]);
+  this.sprite = phaserGame.add.sprite(pixels[0], pixels[1], 'movement-option');
 }
 
 function CustomButton(x, y, getText, onclick) {
@@ -29,10 +34,16 @@ CustomButton.prototype.setImage = function(image) {
 };
 
 function CustomUnit(unit) {
+  console.log(unit);
   this.unit = unit;
+  var pixels = convertSquareToPixels(this.unit.head);
+  phaserGame.add.sprite(pixels[0], pixels[1], this.unit.name);
+  // for (var i = 0; i < unit.squares.length; i++) {
+  //   square = unit.squares[i];
+  //   if(arrayEqual(square, this.unit.head)) return;
+  // }
   for (var i = 0; i < board.squares.length; i++) {
     if(arrayEqual(board.squares[i].loc, this.unit.head)) {
-      phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, this.unit.name);
     } else if (isInArray(this.unit.squares, board.squares[i].loc)){
       phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, this.unit.name + '-background');
     }
@@ -74,9 +85,6 @@ function create() {
       }, this);
     }
   });
-
-  // new CustomUnit(team2.units[0]);
-
 
 
   theButtons = [
