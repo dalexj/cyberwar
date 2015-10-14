@@ -33,22 +33,22 @@ CustomButton.prototype.setImage = function(image) {
   this.sprite.loadTexture(image);
 };
 
-function CustomUnit(unit) {
-  console.log(unit);
-  this.unit = unit;
-  var pixels = convertSquareToPixels(this.unit.head);
-  phaserGame.add.sprite(pixels[0], pixels[1], this.unit.name);
-  // for (var i = 0; i < unit.squares.length; i++) {
-  //   square = unit.squares[i];
-  //   if(arrayEqual(square, this.unit.head)) return;
-  // }
-  for (var i = 0; i < board.squares.length; i++) {
-    if(arrayEqual(board.squares[i].loc, this.unit.head)) {
-    } else if (isInArray(this.unit.squares, board.squares[i].loc)){
-      phaserGame.add.sprite(board.squares[i].x, board.squares[i].y, this.unit.name + '-background');
+CustomUnit.prototype.redraw = function() {
+  this.sprites = [];
+  for (var i = 0; i < this.unit.squares.length; i++) {
+    square = this.unit.squares[i];
+    var pixels = convertSquareToPixels(square);
+    if(arrayEqual(square, this.unit.head)) {
+      this.sprites.push(phaserGame.add.sprite(pixels[0], pixels[1], this.unit.name));
+    } else {
+      this.sprites.push(phaserGame.add.sprite(pixels[0], pixels[1], this.unit.name + '-background'));
     }
   }
+};
 
+function CustomUnit(unit) {
+  this.unit = unit;
+  this.redraw();
 }
 
 function preload() {
@@ -104,216 +104,6 @@ function update() {
 
 function render() {
 }
-
-// Unit class
-
-function Unit(options, loc, name) {
-  this.maxMoves = options.maxMoves;
-  this.maxLength = options.maxLength;
-  this.movesMade = 0;
-  this.head = loc;
-  this.squares = options.squares || [loc];
-  this.attackMode = false;
-  this.attacks = options.attacks || [];
-  this.moveOver = false;
-  this.image = options.image;
-  this.color = options.color;
-  this.name = options.name;
-  var u = this;
-  setTimeout(function() { new CustomUnit(u); }, 200);
-}
-
-Unit.prototype.movesRemaining = function() {
-  return this.maxMoves - this.movesMade;
-};
-
-Unit.prototype.currentAttack = function() {
-  return this._currentAttack || this.attacks[0];
-};
-
-Unit.prototype.attack = function(enemy) {
-  this.attackMode = false;
-  this.moveOver = true;
-  enemy.removeSquares(this.currentAttack().damage);
-};
-
-Unit.prototype.health = function() {
-  return this.squares.length;
-};
-
-Unit.prototype.removeSquares = function(amount) {
-  if(amount <= 0) return;
-  this.squares = this.squares.slice(0, -amount);
-};
-
-Unit.prototype.restartTurn = function() {
-  this.movesMade = 0;
-  this.attackMode = false;
-  this.moveOver = false;
-  this._currentAttack = null;
-};
-
-Unit.prototype.canAttack = function(enemy, loc) {
-  return this.canAttackSquare(loc) && enemy.isOnSquare(loc);
-};
-
-Unit.prototype.canAttackSquare = function(loc) {
-  return this.attackMode && squareDist(this.head, loc) <= this.currentAttack().range && !this.isOnSquare(loc);
-};
-
-Unit.prototype.canMoveTo = function(loc) {
-  return !this.attackMode && this.movesRemaining() > 0 && squareNextTo(loc, this.head);
-};
-
-Unit.prototype.moveTo = function(loc) {
-  if(!this.canMoveTo(loc)) return;
-  this.movesMade++;
-  this.head = loc;
-  // if crossing over self, replace the square that already exists
-  // so that unit squares stay in order
-  for (var i = 0; i < this.squares.length; i++) {
-    if (arrayEqual(this.squares[i], loc)) {
-      this.squares.splice(i, 1);
-      break;
-    }
-  }
-  this.squares.unshift(loc);
-  if(this.movesRemaining() <= 0) {
-    this.attackMode = true;
-  }
-  this.removeSquares(this.squares.length - this.maxLength);
-};
-
-Unit.prototype.isOnSquare = function(loc) {
-  return isInArray(this.squares, loc);
-};
-
-Unit.prototype.makeButtonsForAttacks = function() {
-  unit = this;
-  return this.attacks.map(function(attack) {
-    return {
-      press: function() {
-        unit.attackMode = true;
-        unit._currentAttack = attack;
-      },
-      text: attack.name,
-      getText: function() { return this.text; }
-    };
-  }).concat(this.noAttackButton());
-};
-
-Unit.prototype.noAttackButton = function() {
-  return {
-    press: this.doNothing,
-    text: 'no action',
-    getText: function() { return this.text; }
-  };
-};
-
-Unit.prototype.doNothing = function() {
-  unit.moveOver = true;
-};
-
-function createHack(loc) {
-  return new Unit({
-    maxMoves: 2,
-    maxLength: 4,
-    attacks: [{ name: 'slice', damage: 2, range: 1}],
-    image: 'H',
-    color: 'rgb(43,169,211)',
-    name: 'hack'
-  }, loc);
-}
-
-function createBug(loc) {
-  return new Unit({
-    maxMoves: 5,
-    maxLength: 1,
-    attacks: [{ name: 'glitch', damage: 2, range: 1 }],
-    image: 'B',
-    color: 'rgb(155,216,83)',
-    name: 'bug'
-  }, loc);
-}
-
-// end Unit class
-// Team class
-
-function Team(units, name) {
-  this.units = units;
-  this.name = name;
-}
-
-Team.prototype.nextUnit = function() {
-  for (var i = 0; i < this.units.length; i++) {
-    if(!this.units[i].moveOver) return this.units[i];
-  }
-};
-
-Team.prototype.restartTurn = function() {
-  this._selectedUnit = null;
-  for (var i = 0; i < this.units.length; i++) {
-    this.units[i].restartTurn();
-  }
-};
-
-Team.prototype.selectedUnit = function() {
-  return this._selectedUnit || this.nextUnit();
-};
-
-Team.prototype.turnOver = function() {
-  return !this.nextUnit();
-};
-
-Team.prototype.getUnitOnSquare = function(loc) {
-  for (var i = 0; i < this.units.length; i++) {
-    if(this.units[i].isOnSquare(loc)) return this.units[i];
-  }
-};
-
-Team.prototype.getUnitHeadOnSquare = function(loc) {
-  for (var i = 0; i < this.units.length; i++) {
-    if(arrayEqual(this.units[i].head, loc)) return this.units[i];
-  }
-};
-
-Team.prototype.isDead = function() {
-  this.trimDeadUnits();
-  return this.units.length <= 0;
-};
-
-Team.prototype.deleteUnitOnSqaure = function(loc) {
-  this.units = this.units.filter(function(unit) {
-    return !arrayEqual(unit.head, loc);
-  });
-};
-
-Team.prototype.trimDeadUnits = function() {
-  this.units = this.units.filter(function(unit) {
-    return unit.health() > 0;
-  });
-};
-
-Team.prototype.unitCount = function() {
-  var count = {};
-  for (var i = 0; i < this.units.length; i++) {
-    var name = this.units[i].name;
-    if(!count[name]) count[name] = 0;
-    count[name]++;
-  }
-  return count;
-};
-
-Team.prototype.placeUnit = function(unitName, loc) {
-  var createUnit = {
-    bug: createBug,
-    hack: createHack
-  }[unitName];
-  if(!createUnit) return;
-  this.units.push(createUnit(loc));
-};
-
-// end Team class
 
 var saveState = {
   ownedUnits: {
