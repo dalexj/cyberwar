@@ -10,8 +10,7 @@ function Unit(options, loc, name) {
   this.image = options.image;
   this.color = options.color;
   this.name = options.name;
-  var u = this;
-  setTimeout(function() { new CustomUnit(u); }, 200);
+  new CustomUnit(this);
 }
 
 Unit.prototype.movesRemaining = function() {

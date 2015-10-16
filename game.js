@@ -53,22 +53,18 @@ function CustomUnit(unit) {
 
 function preload() {
   phaserGame.stage.backgroundColor = '#ffffff';
-  phaserGame.load.image('button', 'assets/sprites/button.png');
-  phaserGame.load.image('button2', 'assets/sprites/button2.png');
-  phaserGame.load.image('square', 'assets/sprites/square.png');
-  phaserGame.load.image('square2', 'assets/sprites/square2.png');
-  phaserGame.load.image('unicorn', 'assets/sprites/unicorn.png');
-  phaserGame.load.image('unicorn-background', 'assets/sprites/unicorn-background.png');
-  phaserGame.load.image('hack', 'assets/sprites/hack.png');
-  phaserGame.load.image('hack-background', 'assets/sprites/hack-background.png');
-  phaserGame.load.image('bug', 'assets/sprites/bug.png');
-  phaserGame.load.image('bug-background', 'assets/sprites/bug-background.png');
-  phaserGame.load.image('movement-option', 'assets/sprites/movement-option.png');
+  [
+    'button', 'button2', 'square', 'square2', 'unicorn', 'unicorn-background',
+    'hack', 'hack-background', 'bug', 'bug-background', 'movement-option'
+  ].forEach(function(imageName) {
+    phaserGame.load.image(imageName, 'assets/sprites/' + imageName + '.png');
+  });
 }
 
 var graphics;
 var theButtons;
 function create() {
+  initialSetup();
   graphics = phaserGame.add.graphics(0, 0);
   graphics.beginFill(0xc8c8c8);
   graphics.drawRect(10, 5, offset-20, 488 - 20);
@@ -119,43 +115,68 @@ function hasUnitLeft(placed, unit) {
 function amountLeft(placed, unit) {
   return saveState.ownedUnits[unit] - (placed[unit] || 0);
 }
-
-var playerTeam = new Team([], 'player1');
-var unitToPlace = 'none';
-var buttons = [
-  {text: 'hack', getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'hack'; } },
-  {text: 'bug',  getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'bug'; } }
-];
-
-var team1 = playerTeam;
-var placingPhase = true;
-
-var board = { squares: [], not: [
-    [4, 8], [4, 9], [4, 10], [4, 11], [4, 12], [4, 13], [5, 8],
-    [5, 9], [5, 10], [5, 11], [5, 12], [5, 13], [6, 8], [6, 9],
-    [6, 10], [6, 11], [6, 12], [6, 13], [7, 8], [7, 9], [7, 10],
-    [7, 11], [7, 12], [7, 13], [8, 8], [8, 9], [8, 10], [8, 11],
-    [8, 12], [8, 13], [9, 8], [9, 9], [9, 10], [9, 11], [9, 12],
-    [9, 13], [10, 8], [10, 9], [10, 10], [10, 11], [10, 12], [10, 13],
-    [11, 8], [11, 9], [11, 10], [11, 11], [11, 12], [11, 13], [12, 8],
-    [12, 9], [12, 10], [12, 11], [12, 12], [12, 13], [13, 8], [13, 9],
-    [13, 10], [13, 11], [13, 12], [13, 13], [14, 8], [14, 9], [14, 10],
-    [14, 11], [14, 12], [14, 13]
-  ],
-  openSpots: [[1,1], [5,1], [1,5]],
-  isOpenSquare: function(loc) {
-    var square = this.getSquare(loc);
-    return square && square.open;
-  },
-  getSquare: function(loc) {
-    for (var i = 0; i < this.squares.length; i++) {
-      if(arrayEqual(this.squares[i].loc, loc))
-        return this.squares[i];
+var playerTeam,
+    unitToPlace,
+    buttons,
+    team1,
+    placingPhase,
+    board,
+    enemy,
+    enemyTeam,
+    team2;
+function initialSetup() {
+  playerTeam = new Team([], 'player1');
+  unitToPlace = 'none';
+  buttons = [
+    {text: 'hack', getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'hack'; } },
+    {text: 'bug',  getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'bug'; } }
+  ];
+  team1 = playerTeam;
+  placingPhase = true;
+  board = { squares: [], not: [
+      [4, 8], [4, 9], [4, 10], [4, 11], [4, 12], [4, 13], [5, 8],
+      [5, 9], [5, 10], [5, 11], [5, 12], [5, 13], [6, 8], [6, 9],
+      [6, 10], [6, 11], [6, 12], [6, 13], [7, 8], [7, 9], [7, 10],
+      [7, 11], [7, 12], [7, 13], [8, 8], [8, 9], [8, 10], [8, 11],
+      [8, 12], [8, 13], [9, 8], [9, 9], [9, 10], [9, 11], [9, 12],
+      [9, 13], [10, 8], [10, 9], [10, 10], [10, 11], [10, 12], [10, 13],
+      [11, 8], [11, 9], [11, 10], [11, 11], [11, 12], [11, 13], [12, 8],
+      [12, 9], [12, 10], [12, 11], [12, 12], [12, 13], [13, 8], [13, 9],
+      [13, 10], [13, 11], [13, 12], [13, 13], [14, 8], [14, 9], [14, 10],
+      [14, 11], [14, 12], [14, 13]
+    ],
+    openSpots: [[1,1], [5,1], [1,5]],
+    isOpenSquare: function(loc) {
+      var square = this.getSquare(loc);
+      return square && square.open;
+    },
+    getSquare: function(loc) {
+      for (var i = 0; i < this.squares.length; i++) {
+        if(arrayEqual(this.squares[i].loc, loc))
+          return this.squares[i];
+      }
     }
+  };
+  enemy = new Unit({
+    maxLength: 9,
+    maxMoves: 3,
+    squares: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
+    attacks: [
+      { name: 'attack', range: 2, damage: 2 }
+    ],
+    color: 'rgb(85,85,85)',
+    image: 'E',
+    name: 'unicorn'
+  }, [3, 4]);
+  enemyTeam = new Team([enemy], 'player2');
+  team2 = enemyTeam;
+  if(window.map) {
+    board.not = readMap(window.map);
   }
-};
+  setup2();
+}
 
-function initalizeBoard(xMany, yMany) {
+function initializeBoard(xMany, yMany) {
   for (var i = 0; i < xMany; i++) {
     for (var j = 0; j < yMany; j++) {
       var exists = !isInArray(board.not, [i, j]);
@@ -176,9 +197,6 @@ function readMap(m) {
   });
   return abc;
 }
-if(window.map) {
-  board.not = readMap(window.map);
-}
 
 var color1 = 'rgb(100,200,100)';
 var color2 = 'rgb(200,100,200)';
@@ -194,21 +212,7 @@ var offset = 130;
 var size = 30;
 var space = 4;
 
-var enemy = new Unit({
-  maxLength: 9,
-  maxMoves: 3,
-  squares: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
-  attacks: [
-    { name: 'attack', range: 2, damage: 2 }
-  ],
-  color: 'rgb(85,85,85)',
-  image: 'E',
-  name: 'unicorn'
-}, [3, 4]);
-var enemyTeam = new Team([enemy], 'player2');
-var team2 = enemyTeam;
-
-document.addEventListener('DOMContentLoaded', function(event) {
+function setup2() {
   'use strict';
   var canvas = document.getElementById('game-canvas');
   canvas.width = '650';
@@ -217,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   var xMany = Math.floor((canvas.width - space - offset) / (size + space));
   var yMany = Math.floor((canvas.height - space) / (size + space));
-  initalizeBoard(xMany, yMany);
+  initializeBoard(xMany, yMany);
   drawOnCanvas(ctx);
 
 
@@ -272,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
     drawOnCanvas(ctx);
   }, false);
-});
+}
 
 function findButtonClicked(xClicked, yClicked) {
   for (var i = 0; i < buttons.length; i++) {
