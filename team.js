@@ -42,9 +42,11 @@ Team.prototype.isDead = function() {
   return this.units.length <= 0;
 };
 
-Team.prototype.deleteUnitOnSqaure = function(loc) {
+Team.prototype.deleteUnitOnSquare = function(loc) {
   this.units = this.units.filter(function(unit) {
-    return !arrayEqual(unit.head, loc);
+    if(arrayEqual(unit.head, loc)) {
+      unit.customUnit.destroyAll();
+    } else return true;
   });
 };
 

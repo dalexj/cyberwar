@@ -10,7 +10,8 @@ function Unit(options, loc, name) {
   this.image = options.image;
   this.color = options.color;
   this.name = options.name;
-  new CustomUnit(this);
+  this.customUnit = new CustomUnit(this);
+  customUnits.push(this.customUnit);
 }
 
 Unit.prototype.movesRemaining = function() {
