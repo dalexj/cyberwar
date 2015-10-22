@@ -1,8 +1,13 @@
 
-function Team(units, name) {
-  this.units = units;
+function Team(name) {
+  this.units = [];
   this.name = name;
 }
+
+Team.prototype.addUnit = function(unit) {
+  this.units.push(unit);
+  unit.team = this;
+};
 
 Team.prototype.nextUnit = function() {
   for (var i = 0; i < this.units.length; i++) {
@@ -52,7 +57,9 @@ Team.prototype.deleteUnitOnSquare = function(loc) {
 
 Team.prototype.trimDeadUnits = function() {
   this.units = this.units.filter(function(unit) {
-    return unit.health() > 0;
+    if(unit.health() <= 0) {
+      unit.destroy();
+    } else return true;
   });
 };
 
@@ -72,5 +79,11 @@ Team.prototype.placeUnit = function(unitName, loc) {
     hack: createHack
   }[unitName];
   if(!createUnit) return;
-  this.units.push(createUnit(loc));
+  this.addUnit(createUnit(loc));
+};
+
+Team.prototype.markForRedraw = function() {
+  this.units.forEach(function(unit) {
+    unit._needsRender = true;
+  });
 };

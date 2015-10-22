@@ -3,94 +3,33 @@ var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { pre
 var offset = 130;
 var size = 30;
 var space = 4;
-var customUnits = [];
+var actionButtons;
 
 function convertSquareToPixels(coords) {
   return [space + offset + coords[0]*(size + space), space + coords[1]*(size + space)];
 }
 
-function MovementOption(x, y, onclick) {
-  var pixels = convertSquareToPixels([x, y]);
-  this.sprite = phaserGame.add.button(pixels[0], pixels[1], 'movement-option', onclick || function() {});
-}
-
-MovementOption.prototype.destroy = function() {
-  this.sprite.destroy();
-};
-
-function CustomButton(x, y, getText, onclick) {
-  this.sprites = [];
-  this.getText = getText;
-  onclick = onclick || function() { console.log('nothing implemented for button ' + this.getText()); };
-  this.sprite = phaserGame.add.button(x, y, 'button', onclick, this);
-  this.text = phaserGame.add.text(0, 0, this.getText(), {font: 'monospace', fontSize: 16, fill: '#ffffff'});
-  this.text.anchor.set(0.5);
-  this.update();
-}
-
-CustomButton.prototype.update = function() {
-  this.setText(this.getText());
-  this.text.x = Math.floor(this.sprite.x + this.sprite.width / 2);
-  this.text.y = Math.floor(this.sprite.y + this.sprite.height / 2);
-};
-
-CustomButton.prototype.setText = function(newText) {
-  this.text.text = newText;
-};
-
-CustomButton.prototype.setImage = function(image) {
-  this.sprite.loadTexture(image);
-};
-
-CustomUnit.prototype.destroyAll = function() {
-  if(this.sprites) this.sprites.forEach(function(sprite) { sprite.destroy(); });
-  if(this.movementOptions)this.movementOptions.forEach(function(sprite) { sprite.destroy(); });
-};
-
-CustomUnit.prototype.redraw = function(movement) {
-  this.sprites = [];
-  for (var i = 0; i < this.unit.squares.length; i++) {
-    var pixels = convertSquareToPixels(this.unit.squares[i]);
-    var sprite;
-    if(arrayEqual(this.unit.squares[i], this.unit.head)) {
-      sprite = addSprite(pixels, this.unit.name);
-    } else {
-      sprite = addSprite(pixels, this.unit.name + '-background');
-    }
-    this.sprites.push(sprite);
-  }
-  if(movement) {
-    this.movementOptions = [];
-    for (var j = 0; j < board.squares.length; j++) {
-      var square = board.squares[j];
-      if(!arrayEqual(square.loc, this.unit.head) && squareDist(square.loc, this.unit.head) <= this.unit.movesRemaining()) {
-        this.movementOptions.push(new MovementOption(square.loc[0], square.loc[1]));
-      }
-    }
-  }
-};
-
 function addSprite(pixels, spriteName) {
   return phaserGame.add.sprite(pixels[0], pixels[1], spriteName);
 }
 
-function CustomUnit(unit) {
-  this.unit = unit;
-  this.redraw();
+function addSpriteAndConvert(square, spriteName) {
+  var pixels = convertSquareToPixels(square);
+  return phaserGame.add.sprite(pixels[0], pixels[1], spriteName);
 }
 
 function preload() {
-  phaserGame.stage.backgroundColor = '#ffffff';
+  // phaserGame.stage.backgroundColor = '#ffffff';
+  phaserGame.stage.backgroundColor = '#666666';
   [
     'button', 'button2', 'square', 'square2', 'unicorn', 'unicorn-background',
-    'hack', 'hack-background', 'bug', 'bug-background', 'movement-option'
+    'hack', 'hack-background', 'bug', 'bug-background', 'movement-option', 'attack-option'
   ].forEach(function(imageName) {
     phaserGame.load.image(imageName, 'assets/sprites/' + imageName + '.png');
   });
 }
 
 var graphics;
-var theButtons;
 var groups = {};
 function create() {
   groups.squares = phaserGame.add.group();
@@ -111,27 +50,32 @@ function create() {
     image: 'E',
     name: 'unicorn'
   }, [3, 4]);
-  team2.units.push(enemy);
+  team2.addUnit(enemy);
 
-  theButtons = [
-    new CustomButton(10, 100 + (35 * 0), function() { return 'Hack x' + amountLeft(playerTeam.unitCount(), 'hack'); }, function() { unitToPlace = 'hack'; }),
-    new CustomButton(10, 100 + (35 * 1), function() { return 'Bug x'  + amountLeft(playerTeam.unitCount(), 'bug');  }, function() { unitToPlace = 'bug'; }),
-    new CustomButton(10, 400, function(){ return 'start'; }, function() {
-      if(playerTeam.units.length > 0) placingPhase = false;
+  actionButtons = [
+    new SideButton(10, 100 + (35 * 0), function() { return 'Hack x' + amountLeft(playerTeam.unitCount(), 'hack'); }, function() { unitToPlace = 'hack'; }),
+    new SideButton(10, 100 + (35 * 1), function() { return 'Bug x'  + amountLeft(playerTeam.unitCount(), 'bug');  }, function() { unitToPlace = 'bug'; }),
+    new SideButton(10, 400, function(){ return 'start'; }, function() {
+      if(playerTeam.units.length > 0) {
+        placingPhase = false;
+        team1.restartTurn();
+        board.squares.forEach(function(square) {
+          square.killClicker();
+        });
+      }
     })
   ];
 }
 
 function update() {
-  theButtons.forEach(function(button) {
+  actionButtons.forEach(function(button) {
     button.update();
   });
 }
 
 function render() {
-  customUnits.forEach(function(u) {
-    u.destroyAll();
-    u.redraw();
+  team1.units.concat(team2.units).forEach(function(unit) {
+    unit.redraw();
   });
 }
 
@@ -151,18 +95,13 @@ function amountLeft(placed, unit) {
 }
 var playerTeam,
     unitToPlace,
-    buttons,
     team1,
     placingPhase,
     board,
     team2;
 function initialSetup() {
-  playerTeam = new Team([], 'player1');
+  playerTeam = new Team('player1');
   unitToPlace = 'none';
-  buttons = [
-    {text: 'hack', getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'hack'; } },
-    {text: 'bug',  getText: function() { return this.text + ' x' + amountLeft(playerTeam.unitCount(), this.text); }, press: function() { unitToPlace = 'bug'; } }
-  ];
   team1 = playerTeam;
   placingPhase = true;
   board = { squares: [], not: [
@@ -189,7 +128,7 @@ function initialSetup() {
       }
     }
   };
-  team2 = new Team([], 'player2');
+  team2 = new Team('player2');
   if(window.map) {
     board.not = readMap(window.map);
   }

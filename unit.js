@@ -1,4 +1,4 @@
-function Unit(options, loc, name) {
+function Unit(options, loc) {
   this.maxMoves = options.maxMoves;
   this.maxLength = options.maxLength;
   this.movesMade = 0;
@@ -7,11 +7,10 @@ function Unit(options, loc, name) {
   this.attackMode = false;
   this.attacks = options.attacks || [];
   this.moveOver = false;
-  this.image = options.image;
-  this.color = options.color;
   this.name = options.name;
-  this.customUnit = new CustomUnit(this);
-  customUnits.push(this.customUnit);
+
+  this._needsRender = true;
+  this.renderer = new UnitRenderer(this);
 }
 
 Unit.prototype.movesRemaining = function() {
@@ -35,9 +34,11 @@ Unit.prototype.health = function() {
 Unit.prototype.removeSquares = function(amount) {
   if(amount <= 0) return;
   this.squares = this.squares.slice(0, -amount);
+  this._needsRender = true;
 };
 
 Unit.prototype.restartTurn = function() {
+  this._needsRender = true;
   this.movesMade = 0;
   this.attackMode = false;
   this.moveOver = false;
@@ -73,6 +74,7 @@ Unit.prototype.moveTo = function(loc) {
     this.attackMode = true;
   }
   this.removeSquares(this.squares.length - this.maxLength);
+  this._needsRender = true;
 };
 
 Unit.prototype.isOnSquare = function(loc) {
@@ -80,29 +82,30 @@ Unit.prototype.isOnSquare = function(loc) {
 };
 
 Unit.prototype.makeButtonsForAttacks = function() {
-  unit = this;
   return this.attacks.map(function(attack) {
     return {
-      press: function() {
-        unit.attackMode = true;
-        unit._currentAttack = attack;
-      },
-      text: attack.name,
-      getText: function() { return this.text; }
+      onclick: this.useAttack.bind(this, attack.name),
+      getText: function() { return attack.name; }
     };
-  }).concat(this.noAttackButton());
+  }.bind(this)).concat(this.noAttackButton());
 };
 
 Unit.prototype.noAttackButton = function() {
   return {
-    press: this.doNothing,
-    text: 'no action',
-    getText: function() { return this.text; }
+    onclick: this.doNothing,
+    getText: function() { return 'no action'; }
   };
 };
 
+Unit.prototype.useAttack = function(attackName) {
+  this.attackMode = true;
+  this._currentAttack = this.findAttackByName(attackName);
+  this._needsRender = true;
+};
+
 Unit.prototype.doNothing = function() {
-  unit.moveOver = true;
+  this.moveOver = true;
+  this._needsRender = true;
 };
 
 function createHack(loc) {
@@ -110,8 +113,6 @@ function createHack(loc) {
     maxMoves: 2,
     maxLength: 4,
     attacks: [{ name: 'slice', damage: 2, range: 1}],
-    image: 'H',
-    color: 'rgb(43,169,211)',
     name: 'hack'
   }, loc);
 }
@@ -121,8 +122,26 @@ function createBug(loc) {
     maxMoves: 5,
     maxLength: 1,
     attacks: [{ name: 'glitch', damage: 2, range: 1 }],
-    image: 'B',
-    color: 'rgb(155,216,83)',
     name: 'bug'
   }, loc);
 }
+
+Unit.prototype.redraw = function() {
+  this.renderer.redraw();
+};
+
+Unit.prototype.destroy = function() {
+  this.renderer.erase();
+};
+
+Unit.prototype.isSelected = function() {
+  return !placingPhase && arrayEqual(team1.selectedUnit() && team1.selectedUnit().head, this.head);
+};
+
+Unit.prototype.findAttackByName = function(attackName) {
+  for (var i = 0; i < this.attacks.length; i++) {
+    if(this.attacks[i].name === attackName) {
+      return this.attacks[i];
+    }
+  }
+};
