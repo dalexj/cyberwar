@@ -5,7 +5,7 @@ var size = 30;
 var space = 4;
 var actionButtons;
 
-function convertSquareToPixels(coords) {
+function convertTileToPixels(coords) {
   return [space + offset + coords[0]*(size + space), space + coords[1]*(size + space)];
 }
 
@@ -13,8 +13,8 @@ function addSprite(pixels, spriteName) {
   return phaserGame.add.sprite(pixels[0], pixels[1], spriteName);
 }
 
-function addSpriteAndConvert(square, spriteName) {
-  var pixels = convertSquareToPixels(square);
+function addSpriteAndConvert(tile, spriteName) {
+  var pixels = convertTileToPixels(tile);
   return phaserGame.add.sprite(pixels[0], pixels[1], spriteName);
 }
 
@@ -22,7 +22,7 @@ function preload() {
   // phaserGame.stage.backgroundColor = '#ffffff';
   phaserGame.stage.backgroundColor = '#666666';
   [
-    'button', 'button2', 'square', 'square2', 'unicorn', 'unicorn-background',
+    'button', 'button2', 'tile', 'tile2', 'unicorn', 'unicorn-background',
     'hack', 'hack-background', 'bug', 'bug-background', 'movement-option', 'attack-option'
   ].forEach(function(imageName) {
     phaserGame.load.image(imageName, 'assets/sprites/' + imageName + '.png');
@@ -32,8 +32,8 @@ function preload() {
 var graphics;
 var groups = {};
 function create() {
-  groups.squares = phaserGame.add.group();
-  groups.squares.z = -1;
+  groups.tiles = phaserGame.add.group();
+  groups.tiles.z = -1;
   initialSetup();
   graphics = phaserGame.add.graphics(0, 0);
   graphics.beginFill(0xc8c8c8);
@@ -42,7 +42,7 @@ function create() {
   var enemy = new Unit({
     maxLength: 9,
     maxMoves: 3,
-    squares: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
+    tiles: [[3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [9, 5], [9, 6]],
     attacks: [
       { name: 'attack', range: 2, damage: 2 }
     ],
@@ -59,8 +59,8 @@ function create() {
       if(playerTeam.units.length > 0) {
         placingPhase = false;
         team1.restartTurn();
-        board.squares.forEach(function(square) {
-          square.killClicker();
+        board.tiles.forEach(function(tile) {
+          tile.killClicker();
         });
       }
     })
@@ -70,6 +70,9 @@ function create() {
 function update() {
   actionButtons.forEach(function(button) {
     button.update();
+  });
+  board.tiles.forEach(function(tile) {
+    tile.update();
   });
 }
 
@@ -104,7 +107,7 @@ function initialSetup() {
   unitToPlace = 'none';
   team1 = playerTeam;
   placingPhase = true;
-  board = { squares: [], not: [
+  board = { tiles: [], not: [
       [4, 8], [4, 9], [4, 10], [4, 11], [4, 12], [4, 13], [5, 8],
       [5, 9], [5, 10], [5, 11], [5, 12], [5, 13], [6, 8], [6, 9],
       [6, 10], [6, 11], [6, 12], [6, 13], [7, 8], [7, 9], [7, 10],
@@ -117,18 +120,18 @@ function initialSetup() {
       [14, 11], [14, 12], [14, 13]
     ],
     openSpots: [[1,1], [5,1], [1,5]],
-    isOpenSquare: function(loc) {
-      var square = this.getSquare(loc);
-      return square && square.open;
+    isOpenTile: function(loc) {
+      var tile = this.getTile(loc);
+      return tile && tile.open;
     },
-    getSquare: function(loc) {
-      for (var i = 0; i < this.squares.length; i++) {
-        if(arrayEqual(this.squares[i].loc, loc))
-          return this.squares[i];
+    getTile: function(loc) {
+      for (var i = 0; i < this.tiles.length; i++) {
+        if(arrayEqual(this.tiles[i].loc, loc))
+          return this.tiles[i];
       }
     }
   };
-  team2 = new Team('player2');
+  team2 = new Team('player2', true);
   if(window.map) {
     board.not = readMap(window.map);
   }
@@ -144,7 +147,7 @@ function initializeBoard(xMany, yMany) {
       var open = isInArray(board.openSpots, [i, j]);
       var x = space + i*(size + space);
       var y = space + j*(size + space);
-      board.squares.push(new Square({ x: x + offset, y: y, size: size, loc: [i, j], open: open, exists: exists }));
+      board.tiles.push(new Tile({ x: x + offset, y: y, size: size, loc: [i, j], open: open, exists: exists }));
     }
   }
 }
@@ -159,8 +162,8 @@ function readMap(m) {
   return abc;
 }
 
-function squareNextTo(a, b) {
-  return squareDist(a, b) === 1;
+function tileNextTo(a, b) {
+  return tileDist(a, b) === 1;
 }
 
 function isInArray(arr, val) {
@@ -179,6 +182,6 @@ function arrayEqual(arr1, arr2) {
   return true;
 }
 
-function squareDist(a, b) {
+function tileDist(a, b) {
   return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 }

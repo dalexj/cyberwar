@@ -1,5 +1,6 @@
 
-function Team(name) {
+function Team(name, ai) {
+  this.isAI = ai;
   this.units = [];
   this.name = name;
 }
@@ -20,6 +21,9 @@ Team.prototype.restartTurn = function() {
   for (var i = 0; i < this.units.length; i++) {
     this.units[i].restartTurn();
   }
+  if(this.isAI) {
+    this.startAI();
+  }
 };
 
 Team.prototype.selectedUnit = function() {
@@ -30,13 +34,13 @@ Team.prototype.turnOver = function() {
   return !this.nextUnit();
 };
 
-Team.prototype.getUnitOnSquare = function(loc) {
+Team.prototype.getUnitOnTile = function(loc) {
   for (var i = 0; i < this.units.length; i++) {
-    if(this.units[i].isOnSquare(loc)) return this.units[i];
+    if(this.units[i].isOnTile(loc)) return this.units[i];
   }
 };
 
-Team.prototype.getUnitHeadOnSquare = function(loc) {
+Team.prototype.getUnitHeadOnTile = function(loc) {
   for (var i = 0; i < this.units.length; i++) {
     if(arrayEqual(this.units[i].head, loc)) return this.units[i];
   }
@@ -47,7 +51,7 @@ Team.prototype.isDead = function() {
   return this.units.length <= 0;
 };
 
-Team.prototype.deleteUnitOnSquare = function(loc) {
+Team.prototype.deleteUnitOnTile = function(loc) {
   this.units = this.units.filter(function(unit) {
     if(arrayEqual(unit.head, loc)) {
       unit.customUnit.destroyAll();
@@ -87,3 +91,34 @@ Team.prototype.markForRedraw = function() {
     unit._needsRender = true;
   });
 };
+
+Team.prototype.startAI = function() {
+  board.tiles.forEach(function(tile) {
+    if(tile.exists) tile.sprite.input.enabled = false;
+  });
+  this.n = 0;
+  this.interval = setInterval(this.runAIStep.bind(this), 1000);
+};
+
+Team.prototype.runAIStep = function() {
+  this.n++;
+  if(this.n == 1) {
+    board.getTile([2,4]).clickHandler();
+  } else if(this.n == 2) {
+    board.getTile([2,3]).clickHandler();
+  } else if(this.n == 3) {
+    this.selectedUnit().makeButtonsForAttacks()[0].onclick();
+  } else if(this.n == 4) {
+    board.getTile([2,2]).clickHandler();
+  } else {
+    clearInterval(this.interval);
+    board.tiles.forEach(function(tile) {
+      if(tile.exists) tile.sprite.input.enabled = true;
+    });
+  }
+};
+
+Team.prototype.deselectUnit = function() {
+  this._selectedUnit = null;
+  this.markForRedraw();
+}

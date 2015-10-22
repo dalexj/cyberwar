@@ -3,7 +3,7 @@ function Unit(options, loc) {
   this.maxLength = options.maxLength;
   this.movesMade = 0;
   this.head = loc;
-  this.squares = options.squares || [loc];
+  this.tiles = options.tiles || [loc];
   this.attackMode = false;
   this.attacks = options.attacks || [];
   this.moveOver = false;
@@ -28,12 +28,12 @@ Unit.prototype.attack = function(enemy) {
 };
 
 Unit.prototype.health = function() {
-  return this.squares.length;
+  return this.tiles.length;
 };
 
 Unit.prototype.removeSquares = function(amount) {
   if(amount <= 0) return;
-  this.squares = this.squares.slice(0, -amount);
+  this.tiles = this.tiles.slice(0, -amount);
   this._needsRender = true;
 };
 
@@ -50,35 +50,35 @@ Unit.prototype.canAttack = function(enemy, loc) {
 };
 
 Unit.prototype.canAttackSquare = function(loc) {
-  return this.attackMode && squareDist(this.head, loc) <= this.currentAttack().range && !this.isOnSquare(loc);
+  return this.attackMode && tileDist(this.head, loc) <= this.currentAttack().range && !this.isOnSquare(loc);
 };
 
 Unit.prototype.canMoveTo = function(loc) {
-  return !this.attackMode && this.movesRemaining() > 0 && squareNextTo(loc, this.head);
+  return !this.attackMode && this.movesRemaining() > 0 && tileNextTo(loc, this.head);
 };
 
 Unit.prototype.moveTo = function(loc) {
   if(!this.canMoveTo(loc)) return;
   this.movesMade++;
   this.head = loc;
-  // if crossing over self, replace the square that already exists
-  // so that unit squares stay in order
-  for (var i = 0; i < this.squares.length; i++) {
-    if (arrayEqual(this.squares[i], loc)) {
-      this.squares.splice(i, 1);
+  // if crossing over self, replace the tile that already exists
+  // so that unit tiles stay in order
+  for (var i = 0; i < this.tiles.length; i++) {
+    if (arrayEqual(this.tiles[i], loc)) {
+      this.tiles.splice(i, 1);
       break;
     }
   }
-  this.squares.unshift(loc);
+  this.tiles.unshift(loc);
   if(this.movesRemaining() <= 0) {
     this.attackMode = true;
   }
-  this.removeSquares(this.squares.length - this.maxLength);
+  this.removeSquares(this.tiles.length - this.maxLength);
   this._needsRender = true;
 };
 
 Unit.prototype.isOnSquare = function(loc) {
-  return isInArray(this.squares, loc);
+  return isInArray(this.tiles, loc);
 };
 
 Unit.prototype.makeButtonsForAttacks = function() {
@@ -92,7 +92,7 @@ Unit.prototype.makeButtonsForAttacks = function() {
 
 Unit.prototype.noAttackButton = function() {
   return {
-    onclick: this.doNothing,
+    onclick: this.doNothing.bind(this),
     getText: function() { return 'no action'; }
   };
 };
@@ -106,6 +106,13 @@ Unit.prototype.useAttack = function(attackName) {
 Unit.prototype.doNothing = function() {
   this.moveOver = true;
   this._needsRender = true;
+  this.team.deselectUnit();
+  if(team1.turnOver()) {
+    var temp = team1;
+    team1 = team2;
+    team2 = temp;
+    team1.restartTurn();
+  }
 };
 
 function createHack(loc) {
