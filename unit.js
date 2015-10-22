@@ -24,6 +24,7 @@ Unit.prototype.currentAttack = function() {
 Unit.prototype.attack = function(enemy) {
   this.attackMode = false;
   this.moveOver = true;
+  this._canUndo = false;
   enemy.removeSquares(this.currentAttack().damage);
 };
 
@@ -43,6 +44,16 @@ Unit.prototype.restartTurn = function() {
   this.attackMode = false;
   this.moveOver = false;
   this._currentAttack = null;
+  this._prevState = {
+    head: this.head,
+    tiles: this.tiles
+  };
+  this._canUndo = true;
+};
+
+Unit.prototype.undoMove = function() {
+  this.head = this._prevState.head;
+  this.tiles = this._prevState.tiles;
 };
 
 Unit.prototype.canAttack = function(enemy, loc) {

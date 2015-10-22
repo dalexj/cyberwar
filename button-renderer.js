@@ -36,3 +36,7 @@ function setButtons(buttonData) {
     actionButtons.push(new SideButton(10, 100 + (35 * index), button.getText, button.onclick));
   });
 }
+
+function setExtraButton() {
+  actionButtons.push(new SideButton(10, 400, 'Undo'));
+}
