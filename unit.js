@@ -25,14 +25,14 @@ Unit.prototype.attack = function(enemy) {
   this.attackMode = false;
   this.moveOver = true;
   this._canUndo = false;
-  enemy.removeSquares(this.currentAttack().damage);
+  enemy.removeTiles(this.currentAttack().damage);
 };
 
 Unit.prototype.health = function() {
   return this.tiles.length;
 };
 
-Unit.prototype.removeSquares = function(amount) {
+Unit.prototype.removeTiles = function(amount) {
   if(amount <= 0) return;
   this.tiles = this.tiles.slice(0, -amount);
   this._needsRender = true;
@@ -45,23 +45,26 @@ Unit.prototype.restartTurn = function() {
   this.moveOver = false;
   this._currentAttack = null;
   this._prevState = {
-    head: this.head,
-    tiles: this.tiles
+    head: dupArr(this.head),
+    tiles: dupArr(this.tiles)
   };
   this._canUndo = true;
 };
 
 Unit.prototype.undoMove = function() {
-  this.head = this._prevState.head;
-  this.tiles = this._prevState.tiles;
+  this.head = dupArr(this._prevState.head);
+  this.tiles = dupArr(this._prevState.tiles);
+  this.movesMade = 0;
+  this.attackMode = false;
+  this._needsRender = true;
 };
 
 Unit.prototype.canAttack = function(enemy, loc) {
-  return this.canAttackSquare(loc) && enemy.isOnSquare(loc);
+  return this.canAttackTile(loc) && enemy.isOnTile(loc);
 };
 
-Unit.prototype.canAttackSquare = function(loc) {
-  return this.attackMode && tileDist(this.head, loc) <= this.currentAttack().range && !this.isOnSquare(loc);
+Unit.prototype.canAttackTile = function(loc) {
+  return this.attackMode && tileDist(this.head, loc) <= this.currentAttack().range && !this.isOnTile(loc);
 };
 
 Unit.prototype.canMoveTo = function(loc) {
@@ -84,11 +87,11 @@ Unit.prototype.moveTo = function(loc) {
   if(this.movesRemaining() <= 0) {
     this.attackMode = true;
   }
-  this.removeSquares(this.tiles.length - this.maxLength);
+  this.removeTiles(this.tiles.length - this.maxLength);
   this._needsRender = true;
 };
 
-Unit.prototype.isOnSquare = function(loc) {
+Unit.prototype.isOnTile = function(loc) {
   return isInArray(this.tiles, loc);
 };
 
@@ -163,3 +166,13 @@ Unit.prototype.findAttackByName = function(attackName) {
     }
   }
 };
+
+function dupArr(obj) {
+  if(obj instanceof Array) {
+    return obj.map(function(ele) {
+      return dupArr(ele);
+    });
+  } else {
+    return obj;
+  }
+}

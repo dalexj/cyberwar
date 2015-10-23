@@ -3,7 +3,7 @@ function SideButton(x, y, getText, onclick) {
   this.getText = getText;
   onclick = onclick || function() { console.log('nothing implemented for button ' + this.getText()); };
   this.sprite = phaserGame.add.button(x, y, 'button', onclick, this);
-  this.text = phaserGame.add.text(0, 0, this.getText(), {font: 'monospace', fontSize: 16, fill: '#ffffff'});
+  this.text = phaserGame.add.text(0, 0, this.buttonText(), {font: 'monospace', fontSize: 16, fill: '#ffffff'});
   this.text.anchor.set(0.5);
   this.update();
 }
@@ -14,7 +14,7 @@ SideButton.prototype.destroy = function() {
 };
 
 SideButton.prototype.update = function() {
-  this.setText(this.getText());
+  if(this.isChangingText()) this.setText(this.getText());
   this.text.x = Math.floor(this.sprite.x + this.sprite.width / 2);
   this.text.y = Math.floor(this.sprite.y + this.sprite.height / 2);
 };
@@ -27,6 +27,14 @@ SideButton.prototype.setImage = function(image) {
   this.sprite.loadTexture(image);
 };
 
+SideButton.prototype.buttonText = function() {
+  return this.isChangingText() ? this.getText() : this.getText ;
+};
+
+SideButton.prototype.isChangingText = function() {
+  return (this.getText instanceof Function);
+};
+
 function setButtons(buttonData) {
   actionButtons.forEach(function(button) {
     button.destroy();
@@ -35,8 +43,11 @@ function setButtons(buttonData) {
   buttonData.forEach(function(button, index) {
     actionButtons.push(new SideButton(10, 100 + (35 * index), button.getText, button.onclick));
   });
+  setExtraButton();
 }
 
 function setExtraButton() {
-  actionButtons.push(new SideButton(10, 400, 'Undo'));
+  actionButtons.push(new SideButton(10, 400, 'Undo', function () {
+    team1.selectedUnit().undoMove();
+  }));
 }
