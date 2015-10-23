@@ -35,7 +35,7 @@ SideButton.prototype.isChangingText = function() {
   return (this.getText instanceof Function);
 };
 
-function setButtons(buttonData) {
+function setButtons(buttonData, extraButton) {
   actionButtons.forEach(function(button) {
     button.destroy();
   });
@@ -43,11 +43,19 @@ function setButtons(buttonData) {
   buttonData.forEach(function(button, index) {
     actionButtons.push(new SideButton(10, 100 + (35 * index), button.getText, button.onclick));
   });
-  setExtraButton();
+  if(extraButton) {
+    setExtraButton(extraButton.getText, extraButton.onclick);
+  } else{
+    setUndoButton();
+  }
 }
 
-function setExtraButton() {
-  actionButtons.push(new SideButton(10, 400, 'Undo', function () {
+function setUndoButton() {
+  setExtraButton('Undo', function() {
     team1.selectedUnit().undoMove();
-  }));
+  });
+}
+
+function setExtraButton(text, onclick) {
+  actionButtons.push(new SideButton(10, 400, text, onclick));
 }

@@ -1,9 +1,17 @@
-var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas', { preload: preload, create: create, update: update, render: render });
+var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas');
 
+var inGameState = { preload: preload, create: create, update: update, render: render };
+var menuState = { preload: preload, create: function() { phaserGame.add.button(200, 200, 'button', function() {
+  phaserGame.state.start('game');
+}); } };
+
+phaserGame.state.add('game', inGameState);
+phaserGame.state.add('menu', menuState);
+phaserGame.state.start('menu');
 var offset = 130;
 var size = 30;
 var space = 4;
-var actionButtons;
+var actionButtons = [];
 
 function convertTileToPixels(coords) {
   return [space + offset + coords[0]*(size + space), space + coords[1]*(size + space)];
@@ -52,10 +60,26 @@ function create() {
   }, [3, 4]);
   team2.addUnit(enemy);
 
-  actionButtons = [
-    new SideButton(10, 100 + (35 * 0), function() { return 'Hack x' + amountLeft(playerTeam.unitCount(), 'hack'); }, function() { unitToPlace = 'hack'; }),
-    new SideButton(10, 100 + (35 * 1), function() { return 'Bug x'  + amountLeft(playerTeam.unitCount(), 'bug');  }, function() { unitToPlace = 'bug'; }),
-    new SideButton(10, 400, function(){ return 'start'; }, function() {
+  addPlacingButtons();
+}
+
+String.prototype.capitalize = function() {
+  return this.charAt(0).toUpperCase() + this.slice(1);
+};
+
+function addPlacingButtons() {
+  setButtons(Object.keys(saveState.ownedUnits).map(function(unitType) {
+    return {
+      getText: function() {
+        return unitType.capitalize() + ' x'  + amountLeft(playerTeam.unitCount(), unitType);
+      },
+      onclick: function() {
+        unitToPlace = unitType;
+      }
+    };
+  }), {
+    getText: 'start',
+    onclick: function() {
       if(playerTeam.units.length > 0) {
         placingPhase = false;
         team1.restartTurn();
@@ -63,8 +87,8 @@ function create() {
           tile.killClicker();
         });
       }
-    })
-  ];
+    }
+  });
 }
 
 function update() {
@@ -85,7 +109,8 @@ function render() {
 var saveState = {
   ownedUnits: {
     bug: 2,
-    hack: 1
+    hack: 1,
+    unicorn: 5
   }
 };
 
@@ -132,6 +157,7 @@ function initialSetup() {
     }
   };
   team2 = new Team('player2', true);
+  // team2 = new Team('player2');
   if(window.map) {
     board.not = readMap(window.map);
   }

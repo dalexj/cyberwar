@@ -147,6 +147,15 @@ function createBug(loc) {
   }, loc);
 }
 
+function createUnicorn(loc) {
+  return new Unit({
+    maxMoves: 3,
+    maxLength: 9,
+    attacks: [{ name: 'horn_drill', damage: 2, range: 2 }],
+    name: 'unicorn'
+  }, loc);
+}
+
 Unit.prototype.redraw = function() {
   this.renderer.redraw();
 };

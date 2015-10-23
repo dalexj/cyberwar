@@ -54,7 +54,7 @@ Team.prototype.isDead = function() {
 Team.prototype.deleteUnitOnTile = function(loc) {
   this.units = this.units.filter(function(unit) {
     if(arrayEqual(unit.head, loc)) {
-      unit.customUnit.destroyAll();
+      unit.destroy();
     } else return true;
   });
 };
@@ -80,7 +80,8 @@ Team.prototype.unitCount = function() {
 Team.prototype.placeUnit = function(unitName, loc) {
   var createUnit = {
     bug: createBug,
-    hack: createHack
+    hack: createHack,
+    unicorn: createUnicorn
   }[unitName];
   if(!createUnit) return;
   this.addUnit(createUnit(loc));
@@ -101,16 +102,9 @@ Team.prototype.startAI = function() {
 };
 
 Team.prototype.runAIStep = function() {
-  this.n++;
-  if(this.n == 1) {
-    board.getTile([2,4]).clickHandler();
-  } else if(this.n == 2) {
-    board.getTile([2,3]).clickHandler();
-  } else if(this.n == 3) {
-    this.selectedUnit().makeButtonsForAttacks()[0].onclick();
-  } else if(this.n == 4) {
-    board.getTile([2,2]).clickHandler();
-  } else {
+  var unitAI = new UnitAI(this.selectedUnit());
+  unitAI.takeRandomMove();
+  if(unitAI.done) {
     clearInterval(this.interval);
     board.tiles.forEach(function(tile) {
       if(tile.exists) tile.sprite.input.enabled = true;
@@ -121,4 +115,4 @@ Team.prototype.runAIStep = function() {
 Team.prototype.deselectUnit = function() {
   this._selectedUnit = null;
   this.markForRedraw();
-}
+};

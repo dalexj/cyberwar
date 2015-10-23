@@ -16,7 +16,6 @@ function Tile(data) {
 }
 
 Tile.prototype.clickHandler = function() {
-  // console.log(this.loc);
   if(placingPhase) {
     if(this.open && hasUnitLeft(playerTeam.unitCount(), unitToPlace)) {
       playerTeam.deleteUnitOnTile(this.loc);
