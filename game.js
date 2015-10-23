@@ -10,6 +10,23 @@ var size = 30;
 var space = 4;
 var actionButtons = [];
 
+function checkEndOfTurn() {
+  if(team1.isDead()) {
+    window.winText = team2.name;
+    phaserGame.state.start('menu');
+  }
+  if(team2.isDead()) {
+    window.winText = team1.name;
+    phaserGame.state.start('menu');
+  }
+  if(team1.turnOver()) {
+    var temp = team1;
+    team1 = team2;
+    team2 = temp;
+    team1.restartTurn();
+  }
+}
+
 function convertTileToPixels(coords) {
   return [space + offset + coords[0]*(size + space), space + coords[1]*(size + space)];
 }
@@ -125,7 +142,7 @@ var playerTeam,
     board,
     team2;
 function initialSetup() {
-  playerTeam = new Team('player1');
+  playerTeam = new Team('You');
   unitToPlace = 'none';
   team1 = playerTeam;
   placingPhase = true;
@@ -153,8 +170,7 @@ function initialSetup() {
       }
     }
   };
-  team2 = new Team('player2', true);
-  // team2 = new Team('player2');
+  team2 = new Team('Computer player', true);
   if(window.map) {
     board.not = readMap(window.map);
   }

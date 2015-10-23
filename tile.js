@@ -35,14 +35,7 @@ Tile.prototype.clickHandler = function() {
   } else if(this.exists && !this.findEnemy() && team1.selectedUnit().canMoveTo(this.loc)) {
     team1.selectedUnit().moveTo(this.loc);
   }
-  if(team1.isDead()) console.log(team2.name, ' wins');
-  if(team2.isDead()) console.log(team1.name, ' wins');
-  if(team1.turnOver()) {
-    var temp = team1;
-    team1 = team2;
-    team2 = temp;
-    team1.restartTurn();
-  }
+  checkEndOfTurn();
 };
 
 Tile.prototype.findEnemy = function() {

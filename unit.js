@@ -121,12 +121,7 @@ Unit.prototype.doNothing = function() {
   this.moveOver = true;
   this._needsRender = true;
   this.team.deselectUnit();
-  if(team1.turnOver()) {
-    var temp = team1;
-    team1 = team2;
-    team2 = temp;
-    team1.restartTurn();
-  }
+  checkEndOfTurn();
 };
 
 function createHack(loc) {

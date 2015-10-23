@@ -31,12 +31,7 @@ UnitAI.prototype.takeRandomAttack = function() {
     console.log('attacked');
     this.unit.attack(randomElement(unitsToAttack));
   }
-  if(team1.turnOver()) {
-    var temp = team1;
-    team1 = team2;
-    team2 = temp;
-    team1.restartTurn();
-  }
+  checkEndOfTurn();
   this.done = true;
 };
 
@@ -49,7 +44,7 @@ UnitAI.prototype.tilesCanMoveTo = function() {
 };
 
 UnitAI.prototype.isUnitOn = function(loc) {
-  return !!(team1.getUnitOnTile(loc) && team2.getUnitOnTile(loc));
+  return !!(team2.getUnitOnTile(loc));
 };
 
 function randomElement(arr) {
