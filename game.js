@@ -1,9 +1,6 @@
 var phaserGame = new Phaser.Game(650, 488, Phaser.CANVAS, 'phaser-canvas');
 
 var inGameState = { preload: preload, create: create, update: update, render: render };
-var menuState = { preload: preload, create: function() { phaserGame.add.button(200, 200, 'button', function() {
-  phaserGame.state.start('game');
-}); } };
 
 phaserGame.state.add('game', inGameState);
 phaserGame.state.add('menu', menuState);
