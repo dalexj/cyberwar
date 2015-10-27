@@ -1,6 +1,7 @@
-function UnitAI(unit) {
+function UnitAI(unit, state) {
   this.unit = unit;
   this.done = false;
+  this.state = state;
 }
 
 UnitAI.prototype.takeRandomMove = function() {
@@ -21,7 +22,7 @@ UnitAI.prototype.takeRandomMove = function() {
 
 UnitAI.prototype.takeRandomAttack = function() {
   this.unit.useAttack(randomElement(this.unit.attacks).name);
-  var unitsToAttack = board.tiles.map(function(tile) {
+  var unitsToAttack = this.state.board.tiles.map(function(tile) {
     return this.unit.canAttackTile(tile.loc) && tile.findEnemy();
   }.bind(this)).filter(function(t) { return !!t; });
   if(unitsToAttack.length === 0) {
@@ -31,20 +32,19 @@ UnitAI.prototype.takeRandomAttack = function() {
     console.log('attacked');
     this.unit.attack(randomElement(unitsToAttack));
   }
-  checkEndOfTurn();
+  this.state.checkEndOfTurn();
   this.done = true;
 };
 
 
 UnitAI.prototype.tilesCanMoveTo = function() {
-  return board.tiles.filter(function (tile) {
-    // console.log(tile.loc[0], tile.loc[1], tile.exists, !this.isUnitOn(tile.loc), this.unit.canMoveTo(tile.loc));
-    return tile.exists && !this.isUnitOn(tile.loc) && team1.selectedUnit().canMoveTo(tile.loc);
+  return this.state.board.tiles.filter(function (tile) {
+    return tile.exists && !this.isUnitOn(tile.loc) && this.state.teams[0].selectedUnit().canMoveTo(tile.loc);
   }.bind(this));
 };
 
 UnitAI.prototype.isUnitOn = function(loc) {
-  return !!(team2.getUnitOnTile(loc));
+  return !!(this.state.teams[1].getUnitOnTile(loc));
 };
 
 function randomElement(arr) {

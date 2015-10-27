@@ -1,14 +1,15 @@
-function Tile(data) {
+function Tile(data, state) {
   this.x = data.x;
   this.y = data.y;
   this.size = data.size;
   this.loc = data.loc;
   this.open = data.open;
   this.exists = data.exists;
+  this.state = state;
 
   if(this.exists) {
     this.sprite = phaserGame.add.button(this.x, this.y, 'tile', this.clickHandler, this);
-    groups.tiles.add(this.sprite);
+    this.state.groups.tiles.add(this.sprite);
     if(this.open) {
       this.clicker = addSprite([this.x, this.y], 'tile2');
     }
@@ -16,34 +17,34 @@ function Tile(data) {
 }
 
 Tile.prototype.clickHandler = function() {
-  if(placingPhase) {
-    if(this.open && hasUnitLeft(playerTeam.unitCount(), unitToPlace)) {
-      playerTeam.deleteUnitOnTile(this.loc);
-      playerTeam.placeUnit(unitToPlace, this.loc);
+  if(this.state.placingPhase) {
+    if(this.open && hasUnitLeft(this.state.playerTeam.unitCount(), this.state.unitToPlace)) {
+      this.state.playerTeam.deleteUnitOnTile(this.loc);
+      this.state.playerTeam.placeUnit(this.state.unitToPlace, this.loc);
     }
   } else if(this.findAlly()) {
-    team1._selectedUnit = this.findAlly();
-    team1.markForRedraw();
-  } else if(team1.selectedUnit().canAttackTile(this.loc)) {
+    this.team(1)._selectedUnit = this.findAlly();
+    this.team(1).markForRedraw();
+  } else if(this.team(1).selectedUnit().canAttackTile(this.loc)) {
     if(this.findEnemy()) {
-      team1.selectedUnit().attack(this.findEnemy());
+      this.team(1).selectedUnit().attack(this.findEnemy());
     } else {
-      team1.selectedUnit().doNothing();
+      this.team(1).selectedUnit().doNothing();
     }
-    team1.deselectUnit();
-    team2.trimDeadUnits();
-  } else if(this.exists && !this.findEnemy() && team1.selectedUnit().canMoveTo(this.loc)) {
-    team1.selectedUnit().moveTo(this.loc);
+    this.team(1).deselectUnit();
+    this.team(2).trimDeadUnits();
+  } else if(this.exists && !this.findEnemy() && this.team(1).selectedUnit().canMoveTo(this.loc)) {
+    this.team(1).selectedUnit().moveTo(this.loc);
   }
-  checkEndOfTurn();
+  this.state.checkEndOfTurn();
 };
 
 Tile.prototype.findEnemy = function() {
-  return team2.getUnitOnTile(this.loc);
+  return this.team(2).getUnitOnTile(this.loc);
 };
 
 Tile.prototype.findAlly = function() {
-  return team1.getUnitHeadOnTile(this.loc);
+  return this.team(1).getUnitHeadOnTile(this.loc);
 };
 
 Tile.prototype.killClicker = function() {
@@ -61,8 +62,12 @@ Tile.prototype.update = function() {
 
 Tile.prototype.shouldBeClickable = function() {
   if(!this.exists) return false;
-  return  (team1.selectedUnit() && team1.selectedUnit().canAttackTile(this.loc)) ||
-          (!this.findEnemy() && team1.selectedUnit() && team1.selectedUnit().canMoveTo(this.loc)) ||
-          (this.open && placingPhase) ||
+  return  (this.team(1).selectedUnit() && this.team(1).selectedUnit().canAttackTile(this.loc)) ||
+          (!this.findEnemy() && this.team(1).selectedUnit() && this.team(1).selectedUnit().canMoveTo(this.loc)) ||
+          (this.open && this.state.placingPhase) ||
           (this.findAlly());
+};
+
+Tile.prototype.team = function(n) {
+  return this.state.teams[n-1];
 };

@@ -1,4 +1,5 @@
-function UnitRenderer(unit) {
+function UnitRenderer(unit, state) {
+  this.state = state;
   this.unit = unit;
   this.rendering = {};
 }
@@ -6,8 +7,8 @@ function UnitRenderer(unit) {
 UnitRenderer.prototype.renderMovementAndAttackOptions = function() {
   this.rendering.attackOptions = [];
   this.rendering.movementOptions = [];
-  for (var j = 0; j < board.tiles.length; j++) {
-    var tile = board.tiles[j];
+  for (var j = 0; j < this.state.board.tiles.length; j++) {
+    var tile = this.state.board.tiles[j];
     if(this.unit.canAttackTile(tile.loc)) {
       this.rendering.attackOptions.push(addSpriteAndConvert(tile.loc, 'attack-option'));
     }
@@ -53,5 +54,5 @@ UnitRenderer.prototype.erase = function() {
 };
 
 UnitRenderer.prototype.renderButtons = function() {
-  setButtons(this.unit.makeButtonsForAttacks());
+  this.state.setButtons(this.unit.makeButtonsForAttacks());
 };

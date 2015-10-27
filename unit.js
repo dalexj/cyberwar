@@ -1,4 +1,5 @@
-function Unit(options, loc) {
+function Unit(options, loc, state) {
+  this.state = state;
   this.maxMoves = options.maxMoves;
   this.maxLength = options.maxLength;
   this.movesMade = 0;
@@ -10,7 +11,7 @@ function Unit(options, loc) {
   this.name = options.name;
 
   this._needsRender = true;
-  this.renderer = new UnitRenderer(this);
+  this.renderer = new UnitRenderer(this, this.state);
 }
 
 Unit.prototype.movesRemaining = function() {
@@ -121,35 +122,8 @@ Unit.prototype.doNothing = function() {
   this.moveOver = true;
   this._needsRender = true;
   this.team.deselectUnit();
-  checkEndOfTurn();
+  this.state.checkEndOfTurn();
 };
-
-function createHack(loc) {
-  return new Unit({
-    maxMoves: 2,
-    maxLength: 4,
-    attacks: [{ name: 'slice', damage: 2, range: 1}],
-    name: 'hack'
-  }, loc);
-}
-
-function createBug(loc) {
-  return new Unit({
-    maxMoves: 5,
-    maxLength: 1,
-    attacks: [{ name: 'glitch', damage: 2, range: 1 }],
-    name: 'bug'
-  }, loc);
-}
-
-function createUnicorn(loc) {
-  return new Unit({
-    maxMoves: 3,
-    maxLength: 9,
-    attacks: [{ name: 'horn_drill', damage: 2, range: 2 }],
-    name: 'unicorn'
-  }, loc);
-}
 
 Unit.prototype.redraw = function() {
   this.renderer.redraw();
@@ -160,7 +134,7 @@ Unit.prototype.destroy = function() {
 };
 
 Unit.prototype.isSelected = function() {
-  return !placingPhase && arrayEqual(team1.selectedUnit() && team1.selectedUnit().head, this.head);
+  return !this.state.placingPhase && arrayEqual(this.state.teams[0].selectedUnit() && this.state.teams[0].selectedUnit().head, this.head);
 };
 
 Unit.prototype.findAttackByName = function(attackName) {
@@ -179,4 +153,33 @@ function dupArr(obj) {
   } else {
     return obj;
   }
+}
+
+function createUnit(name, loc, state) {
+  var data = unitDataFor(name);
+  if(!data) return null;
+  return new Unit(data, loc, state);
+}
+
+function unitDataFor(name) {
+  return {
+    hack: {
+      maxMoves: 2,
+      maxLength: 4,
+      attacks: [{ name: 'slice', damage: 2, range: 1}],
+      name: 'hack'
+    },
+    bug: {
+      maxMoves: 5,
+      maxLength: 1,
+      attacks: [{ name: 'glitch', damage: 2, range: 1 }],
+      name: 'bug'
+    },
+    unicorn: {
+      maxMoves: 3,
+      maxLength: 9,
+      attacks: [{ name: 'horn_drill', damage: 2, range: 2 }],
+      name: 'unicorn'
+    }
+  }[name];
 }

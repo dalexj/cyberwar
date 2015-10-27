@@ -1,5 +1,6 @@
 
-function Team(name, ai) {
+function Team(name, state, ai) {
+  this.state = state;
   this.isAI = ai;
   this.units = [];
   this.name = name;
@@ -17,6 +18,7 @@ Team.prototype.nextUnit = function() {
 };
 
 Team.prototype.restartTurn = function() {
+  console.log(this.name, 'restarting');
   this._selectedUnit = null;
   for (var i = 0; i < this.units.length; i++) {
     this.units[i].restartTurn();
@@ -78,13 +80,12 @@ Team.prototype.unitCount = function() {
 };
 
 Team.prototype.placeUnit = function(unitName, loc) {
-  var createUnit = {
-    bug: createBug,
-    hack: createHack,
-    unicorn: createUnicorn
-  }[unitName];
-  if(!createUnit) return;
-  this.addUnit(createUnit(loc));
+  var newUnit = createUnit(unitName, loc, this.state);
+  if(!newUnit) {
+    console.warn('unit of type "' + unitName + '" not found');
+    return;
+  }
+  this.addUnit(newUnit);
 };
 
 Team.prototype.markForRedraw = function() {
@@ -94,19 +95,19 @@ Team.prototype.markForRedraw = function() {
 };
 
 Team.prototype.startAI = function() {
-  board.tiles.forEach(function(tile) {
+  console.log('start');
+  this.state.board.tiles.forEach(function(tile) {
     if(tile.exists) tile.sprite.input.enabled = false;
   });
-  this.n = 0;
   this.interval = setInterval(this.runAIStep.bind(this), 1000);
 };
 
 Team.prototype.runAIStep = function() {
-  var unitAI = new UnitAI(this.selectedUnit());
+  var unitAI = new UnitAI(this.selectedUnit(), this.state);
   unitAI.takeRandomMove();
   if(unitAI.done) {
     clearInterval(this.interval);
-    board.tiles.forEach(function(tile) {
+    this.state.board.tiles.forEach(function(tile) {
       if(tile.exists) tile.sprite.input.enabled = true;
     });
   }
