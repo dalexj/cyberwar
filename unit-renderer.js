@@ -20,7 +20,17 @@ UnitRenderer.prototype.renderMovementAndAttackOptions = function() {
 
 UnitRenderer.prototype.renderBody = function() {
   this.rendering.sprites = [];
+  this.rendering.connectingSprites = [];
   for (var i = 0; i < this.unit.tiles.length; i++) {
+    for (var j = 0; j < this.unit.tiles.length; j++) {
+      if(tileNextTo(this.unit.tiles[i], this.unit.tiles[j])) {
+        var pixels2 = coordsBetween(this.unit.tiles[i], this.unit.tiles[j]);
+        var sprite2 = addSprite(pixels2, this.unit.name + '-background');
+        sprite2.width = 4;
+        sprite2.height = 4;
+        this.rendering.connectingSprites.push(sprite2);
+      }
+    }
     var pixels = convertTileToPixels(this.unit.tiles[i]);
     var sprite;
     if(arrayEqual(this.unit.tiles[i], this.unit.head)) {

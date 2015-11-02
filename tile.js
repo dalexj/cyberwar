@@ -56,7 +56,7 @@ Tile.prototype.killClicker = function() {
 
 Tile.prototype.update = function() {
   if(this.exists) {
-    // this.sprite.input.enabled = this.shouldBeClickable();
+    this.sprite.input.enabled = this.shouldBeClickable();
   }
 };
 

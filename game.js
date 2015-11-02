@@ -11,6 +11,28 @@ function convertTileToPixels(coords) {
   return [space + offset + coords[0]*(size + space), space + coords[1]*(size + space)];
 }
 
+function coordsBetween(coords1, coords2) {
+  var x,y;
+  var converted1 = convertTileToPixels(coords1);
+  var converted2 = convertTileToPixels(coords2);
+  if(converted1[0] === converted2[0]) {
+    x = converted1[0] + 13;
+  } else {
+    x = max(converted1[0], converted2[0]) - 4;
+  }
+  if(converted1[1] === converted2[1]) {
+    y = converted1[1] + 13;
+  } else {
+    y = max(converted1[1], converted2[1]) - 4;
+  }
+
+  return [x, y];
+}
+
+function max(x, y) {
+  return x > y ? x : y;
+}
+
 function addSprite(pixels, spriteName) {
   return phaserGame.add.sprite(pixels[0], pixels[1], spriteName);
 }

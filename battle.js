@@ -102,6 +102,7 @@ BattleState.prototype.addPlacingButtons = function() {
 };
 
 BattleState.prototype.checkEndOfTurn = function() {
+  if(this.placingPhase) return;
   if(this.teams[0].isDead()) {
     window.winText = this.teams[1].name;
     phaserGame.state.start('menu');
