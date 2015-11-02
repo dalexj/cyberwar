@@ -23,7 +23,7 @@ Team.prototype.restartTurn = function() {
   for (var i = 0; i < this.units.length; i++) {
     this.units[i].restartTurn();
   }
-  if(this.isAI) {
+  if(this.isAI && !this.isDead()) {
     this.startAI();
   }
 };

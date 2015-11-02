@@ -92,7 +92,7 @@ BattleState.prototype.addPlacingButtons = function() {
     onclick: function() {
       if(state.playerTeam.units.length > 0) {
         state.placingPhase = false;
-        state.teams[0].restartTurn();
+        state.playingTeam().restartTurn();
         state.board.tiles.forEach(function(tile) {
           tile.killClicker();
         });
@@ -103,17 +103,17 @@ BattleState.prototype.addPlacingButtons = function() {
 
 BattleState.prototype.checkEndOfTurn = function() {
   if(this.placingPhase) return;
-  if(this.teams[0].isDead()) {
+  if(this.playingTeam().isDead()) {
     window.winText = this.teams[1].name;
     phaserGame.state.start('menu');
   }
   if(this.teams[1].isDead()) {
-    window.winText = this.teams[0].name;
+    window.winText = this.playingTeam().name;
     phaserGame.state.start('menu');
   }
-  if(this.teams[0].turnOver()) {
+  if(this.playingTeam().turnOver()) {
     this.teams.unshift(this.teams.pop());
-    this.teams[0].restartTurn();
+    this.playingTeam().restartTurn();
   }
 };
 
@@ -154,8 +154,12 @@ BattleState.prototype.update = function() {
 
 BattleState.prototype.setUndoButton = function() {
   this.setExtraButton('Undo', function() {
-    team1.selectedUnit().undoMove();
-  });
+    this.playingTeam().selectedUnit().undoMove();
+  }.bind(this));
+};
+
+BattleState.prototype.playingTeam = function() {
+  return this.teams[0];
 };
 
 BattleState.prototype.setExtraButton = function(text, onclick) {

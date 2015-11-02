@@ -26,8 +26,8 @@ UnitRenderer.prototype.renderBody = function() {
       if(tileNextTo(this.unit.tiles[i], this.unit.tiles[j])) {
         var pixels2 = coordsBetween(this.unit.tiles[i], this.unit.tiles[j]);
         var sprite2 = addSprite(pixels2, this.unit.name + '-background');
-        sprite2.width = 4;
-        sprite2.height = 4;
+        sprite2.width = 8;
+        sprite2.height = 8;
         this.rendering.connectingSprites.push(sprite2);
       }
     }
@@ -56,11 +56,11 @@ UnitRenderer.prototype.redraw = function() {
 };
 
 UnitRenderer.prototype.erase = function() {
-  ['sprites', 'movementOptions', 'attackOptions'].forEach(function(imageType) {
+  for(var imageType in this.rendering) {
     if(this.rendering[imageType]) {
       this.rendering[imageType].forEach(function(sprite) { sprite.destroy(); });
     }
-  }.bind(this));
+  }
 };
 
 UnitRenderer.prototype.renderButtons = function() {

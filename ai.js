@@ -39,7 +39,7 @@ UnitAI.prototype.takeRandomAttack = function() {
 
 UnitAI.prototype.tilesCanMoveTo = function() {
   return this.state.board.tiles.filter(function (tile) {
-    return tile.exists && !this.isUnitOn(tile.loc) && this.state.teams[0].selectedUnit().canMoveTo(tile.loc);
+    return tile.exists && !this.isUnitOn(tile.loc) && this.state.playingTeam().selectedUnit().canMoveTo(tile.loc);
   }.bind(this));
 };
 

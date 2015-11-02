@@ -134,7 +134,7 @@ Unit.prototype.destroy = function() {
 };
 
 Unit.prototype.isSelected = function() {
-  return !this.state.placingPhase && arrayEqual(this.state.teams[0].selectedUnit() && this.state.teams[0].selectedUnit().head, this.head);
+  return !this.state.placingPhase && arrayEqual(this.state.playingTeam().selectedUnit() && this.state.playingTeam().selectedUnit().head, this.head);
 };
 
 Unit.prototype.findAttackByName = function(attackName) {

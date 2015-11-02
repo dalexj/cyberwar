@@ -16,14 +16,14 @@ function coordsBetween(coords1, coords2) {
   var converted1 = convertTileToPixels(coords1);
   var converted2 = convertTileToPixels(coords2);
   if(converted1[0] === converted2[0]) {
-    x = converted1[0] + 13;
+    x = converted1[0] + 11;
   } else {
-    x = max(converted1[0], converted2[0]) - 4;
+    x = max(converted1[0], converted2[0]) - 6;
   }
   if(converted1[1] === converted2[1]) {
-    y = converted1[1] + 13;
+    y = converted1[1] + 11;
   } else {
-    y = max(converted1[1], converted2[1]) - 4;
+    y = max(converted1[1], converted2[1]) - 6;
   }
 
   return [x, y];
