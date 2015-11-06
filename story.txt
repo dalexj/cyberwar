@@ -1,0 +1,26 @@
+http://pimp.name/hacker-name-generator/
+
+--------
+you are a small time hacker at college looking up the answers
+to your tests through your colleges database.
+
+you decide to go one step further and change your history grade from
+a 65% to an 84%
+
+while you succeeded, youre still an amateur and left some record of yourself
+on the machine that [some name] professor found.
+
+[some name] isnt mad about it, since its not directly his money, and
+in fact he was looking for hackers anyway
+
+he introduces you to his secret group of (2-4) people trying to take out
+[big company] and recruits you for his team (one or more of these people
+work at the [big company])
+
+you start your first mission, they finally have the number of people to do it.
+
+you come up on the nearby datacenter of the [big company] and leak a
+tiny thing about [big company].
+
+one person in your group gets caught, and dissapears, scaring the team,
+but now youve gone too far in and cant back out
